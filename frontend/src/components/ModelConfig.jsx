@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const API = '/api'
+const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // 常用模型快速预设
 const PRESETS = [

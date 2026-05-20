@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import axios from 'axios'
 
-const API = '/api'
+const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // ==================== 引导式提问配置 ====================
 const GUIDE_CONFIG = [

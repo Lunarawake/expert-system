@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import axios from 'axios'
 
-const API = '/api'
+const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
 function FileUpload() {
   const [documents, setDocuments] = useState([])
