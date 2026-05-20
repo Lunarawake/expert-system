@@ -1,0 +1,10 @@
+[
+  {
+    "id": "05bba071-dd2f-48a1-91ce-0292060649da",
+    "name": "DeepSeek",
+    "api_key": "sk-9640480d8b534500855a9890fa88942c",
+    "base_url": "https://api.deepseek.com/v1",
+    "model_name": "deepseek-chat",
+    "is_default": true
+  }
+]

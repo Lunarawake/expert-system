@@ -1,0 +1,112 @@
+import { useState } from 'react'
+import Sidebar from './components/Sidebar'
+import ChatWindow from './components/ChatWindow'
+import FileUpload from './components/FileUpload'
+import ModelConfig from './components/ModelConfig'
+import RightPanel from './components/RightPanel'
+
+const PAGE_TITLES = {
+  chat:   '智能问答',
+  docs:   '文档管理',
+  config: '模型配置',
+}
+
+function getOrCreateSessionId() {
+  const stored = localStorage.getItem('expert_session_id')
+  if (stored) return stored
+  const id = crypto.randomUUID()
+  localStorage.setItem('expert_session_id', id)
+  return id
+}
+
+function App() {
+  const [activeNav, setActiveNav] = useState('chat')
+  const [modelName, setModelName] = useState('')
+  const [currentSessionId, setCurrentSessionId] = useState(getOrCreateSessionId)
+  const [sessionVersion, setSessionVersion] = useState(0)  // 每次发消息/删会话时自增，触发右侧列表刷新
+
+  const isChat = activeNav === 'chat'
+
+  const handleNewChat = () => {
+    const newId = crypto.randomUUID()
+    localStorage.setItem('expert_session_id', newId)
+    setCurrentSessionId(newId)
+  }
+
+  const handleSessionSelect = (sessionId) => {
+    localStorage.setItem('expert_session_id', sessionId)
+    setCurrentSessionId(sessionId)
+    setActiveNav('chat')
+  }
+
+  const handleMessageSent = () => {
+    setSessionVersion(v => v + 1)
+  }
+
+  const handleSessionDeleted = () => {
+    setSessionVersion(v => v + 1)
+  }
+
+  return (
+    <div className="app-layout">
+      <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
+
+      <div className="main-wrapper">
+        {/* 顶部 Header */}
+        <header className="main-header">
+          <h1 className="header-title">{PAGE_TITLES[activeNav]}</h1>
+
+          <div className="header-actions">
+            {isChat && (
+              <>
+                <button className="new-chat-btn" onClick={handleNewChat}>
+                  ✏️ 新对话
+                </button>
+
+                {modelName && (
+                  <button
+                    className="model-badge"
+                    onClick={() => setActiveNav('config')}
+                    title="点击前往模型配置"
+                  >
+                    <span>🤖</span>
+                    <span className="model-badge-label">当前模型：</span>
+                    <span className="model-badge-name">{modelName}</span>
+                    <span className="model-badge-arrow">▾</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* 内容区 */}
+        <div className={`content-wrapper ${isChat ? 'chat-mode' : ''}`}>
+          {isChat ? (
+            <>
+              <ChatWindow
+                sessionId={currentSessionId}
+                onModelChange={setModelName}
+                onMessageSent={handleMessageSent}
+              />
+              <RightPanel
+                currentSessionId={currentSessionId}
+                sessionVersion={sessionVersion}
+                onSessionSelect={handleSessionSelect}
+                onSessionDeleted={handleSessionDeleted}
+                onNavChange={setActiveNav}
+              />
+            </>
+          ) : (
+            <div className="page-content">
+              {activeNav === 'docs'   && <FileUpload />}
+              {activeNav === 'config' && <ModelConfig />}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default App
