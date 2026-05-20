@@ -6,8 +6,10 @@ Embedding 加载策略：
   - 优先从本地缓存加载，30 秒内未完成则超时
   - 加载失败自动切换为 jieba 关键词召回（JIEBA_MODE=True）
 """
+import os
 import uuid
 import time
+import shutil
 import threading
 from pathlib import Path
 from typing import List, Dict, Any
@@ -98,6 +100,10 @@ _init_embedding()
 
 
 # ==================== ChromaDB ====================
+
+# 云端部署时清理旧版本数据库（本地开发不影响）
+if os.environ.get("RENDER") and os.path.exists("./chroma_db"):
+    shutil.rmtree("./chroma_db")
 
 chroma_client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
 collection = chroma_client.get_or_create_collection(
