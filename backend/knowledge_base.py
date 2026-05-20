@@ -10,9 +10,9 @@ import uuid
 import time
 import threading
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
-import fitz  # PyMuPDF
+from pypdf import PdfReader
 from docx import Document as DocxDocument
 import chromadb
 
@@ -109,12 +109,10 @@ collection = chroma_client.get_or_create_collection(
 # ==================== 文档解析 ====================
 
 def parse_pdf(file_path: str) -> str:
-    doc = fitz.open(file_path)
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    doc.close()
-    return text
+    reader = PdfReader(file_path)
+    return "\n".join(
+        page.extract_text() or "" for page in reader.pages
+    )
 
 
 def parse_docx(file_path: str) -> str:
