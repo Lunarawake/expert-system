@@ -239,6 +239,7 @@ async def health():
 
 
 if __name__ == "__main__":
-    print("🚀 数字专家系统后端启动中...")
-    print("   API 文档：http://localhost:8000/docs")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    print(f"🚀 数字专家系统后端启动中，端口：{port}")
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
