@@ -16,11 +16,7 @@ function Sidebar({ activeNav, onNavChange }) {
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon">DE</div>
-        <div>
-          <div className="logo-name">数字专家系统</div>
-          <div className="logo-sub">知识驱动 · 智能决策</div>
-        </div>
+        <img src="/logo.png" className="sidebar-logo-img" alt="Cristar 晶品众" />
       </div>
 
       {/* 导航菜单 */}
