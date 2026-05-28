@@ -8,6 +8,11 @@ const API = import.meta.env.VITE_API_BASE_URL || '/api'
 // ==================== 引导式提问配置 ====================
 const GUIDE_CONFIG = [
   {
+    id: 'all',
+    label: '全部',
+    directions: ['全部'],
+  },
+  {
     id: 'sic',
     label: '碳化硅产品',
     directions: ['热场相关', '压力相关', '功率相关', '工艺参数', '缺陷分析', '其他'],
@@ -25,13 +30,24 @@ const GUIDE_CONFIG = [
 ]
 
 const SUGGESTION_SETS = [
-  ['碳化硅热场材料主要性能指标？', '金刚石合成工艺关键参数是什么？', '压力系统维护注意事项？', '碳化硅缺陷分析检测方法？'],
-  ['功率器件对碳化硅材料的要求？', '金刚石品质检测的评价标准？', '工艺参数对产品性能的影响？', '如何提升合成工艺的稳定性？'],
+  [
+    { icon: '✏️', text: '碳化硅热场材料主要性能指标？' },
+    { icon: '🔬', text: '金刚石合成工艺关键参数是什么？' },
+    { icon: '📋', text: '压力系统维护注意事项？' },
+    { icon: '🔍', text: '碳化硅缺陷分析检测方法？' },
+  ],
+  [
+    { icon: '⚡', text: '功率器件对碳化硅材料的要求？' },
+    { icon: '💎', text: '金刚石品质检测的评价标准？' },
+    { icon: '📊', text: '工艺参数对产品性能的影响？' },
+    { icon: '🔧', text: '如何提升合成工艺的稳定性？' },
+  ],
 ]
 
 // ==================== 工具函数 ====================
 
 function buildFinalMessage(categoryLabel, directions, rawInput) {
+  if (categoryLabel === '全部') return rawInput.trim()
   return `【产品类别：${categoryLabel}】【问题方向：${directions.join('、')}】${rawInput.trim()}`
 }
 
@@ -123,6 +139,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   // 多模型选择
   const [models, setModels] = useState([])
   const [selectedModelId, setSelectedModelId] = useState(null)
+  const [showModelMenu, setShowModelMenu] = useState(false)
 
   // 引导选择
   const [selectedCatId, setSelectedCatId] = useState(null)
@@ -130,6 +147,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
+  const modelMenuRef = useRef(null)
 
   const currentCat = GUIDE_CONFIG.find(c => c.id === selectedCatId)
   const currentModel = models.find(m => m.id === selectedModelId)
@@ -175,6 +193,18 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  // 点击外部关闭模型下拉
+  useEffect(() => {
+    if (!showModelMenu) return
+    const handler = (e) => {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(e.target)) {
+        setShowModelMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showModelMenu])
+
   const autoResize = () => {
     const el = textareaRef.current
     if (!el) return
@@ -184,7 +214,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
   const handleCatToggle = (catId) => {
     if (selectedCatId === catId) { setSelectedCatId(null); setSelectedDirs([]) }
-    else { setSelectedCatId(catId); setSelectedDirs([]) }
+    else { setSelectedCatId(catId); setSelectedDirs(catId === 'all' ? ['全部'] : []) }
   }
 
   const handleDirToggle = (dir) => {
@@ -295,18 +325,26 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
               ⚠️ 尚未配置模型，请前往「模型配置」页面添加
             </span>
           ) : (
-            <div className="tag-group">
-              {models.map(m => (
-                <button
-                  key={m.id}
-                  className={`tag ${selectedModelId === m.id ? 'tag-cat-selected' : ''}`}
-                  onClick={() => handleModelSelect(m.id)}
-                  title={`${m.model_name} · ${m.base_url}`}
-                >
-                  {m.name}
-                  {m.is_default && <span style={{ fontSize: 9, marginLeft: 3, opacity: 0.7 }}>默认</span>}
-                </button>
-              ))}
+            <div ref={modelMenuRef} style={{ position: 'relative', display: 'inline-block' }}>
+              <button className="model-dropdown" onClick={() => setShowModelMenu(v => !v)}>
+                <span>🤖 {currentModel?.name || '选择模型'}</span>
+                {currentModel?.is_default && <span className="model-default-badge">默认</span>}
+                <span className="model-dropdown-arrow">{showModelMenu ? '▴' : '▾'}</span>
+              </button>
+              {showModelMenu && (
+                <div className="model-dropdown-menu">
+                  {models.map(m => (
+                    <button
+                      key={m.id}
+                      className={`model-menu-item ${selectedModelId === m.id ? 'active' : ''}`}
+                      onClick={() => { handleModelSelect(m.id); setShowModelMenu(false) }}
+                    >
+                      <span>{m.name}</span>
+                      {m.is_default && <span className="model-default-badge">默认</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -327,8 +365,8 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
           </div>
         </div>
 
-        {/* 第二级：问题方向（联动） */}
-        {currentCat && (
+        {/* 第二级：问题方向（联动，全部类别不需要选方向） */}
+        {currentCat && selectedCatId !== 'all' && (
           <div className="guide-row">
             <span className="guide-row-label">问题方向</span>
             <div className="tag-group">
@@ -346,7 +384,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         )}
 
         {/* 已选预览 */}
-        {selectedCatId && selectedDirs.length > 0 && (
+        {selectedCatId && selectedCatId !== 'all' && selectedDirs.length > 0 && (
           <div className="guide-preview">
             {currentModel && <span className="guide-preview-badge" style={{ background: '#722ed1' }}>{currentModel.name}</span>}
             <span className="guide-preview-badge">{currentCat.label}</span>
@@ -381,15 +419,20 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
       {/* 快捷问题栏 */}
       <div className="suggestion-bar">
-        {suggestions.map((q, i) => (
-          <button key={i} className="suggestion-chip"
-            onClick={() => { setInput(q); textareaRef.current?.focus() }}>
-            {q}
+        <div className="suggestion-bar-header">
+          <button className="suggestion-refresh" onClick={() => setSuggestionPage(p => p + 1)}>
+            ↻ 换一换
           </button>
-        ))}
-        <button className="suggestion-refresh" onClick={() => setSuggestionPage(p => p + 1)}>
-          ↻ 换一换
-        </button>
+        </div>
+        <div className="suggestion-grid">
+          {suggestions.map((s, i) => (
+            <button key={i} className="suggestion-chip"
+              onClick={() => { setInput(s.text); textareaRef.current?.focus() }}>
+              <span className="suggestion-chip-icon">{s.icon}</span>
+              <span>{s.text}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

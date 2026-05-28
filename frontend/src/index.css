@@ -2,31 +2,31 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --primary: #1677ff;
-  --primary-hover: #0958d9;
-  --primary-light: #e6f4ff;
-  --primary-lighter: #f0f7ff;
+  --primary: #6C47FF;
+  --primary-hover: #5835EF;
+  --primary-light: #EDE9FF;
+  --primary-lighter: #F5F3FF;
   --sidebar-w: 220px;
   --panel-w: 278px;
   --header-h: 56px;
-  --bg: #f5f7fa;
+  --bg: #F5F3FF;
   --surface: #fff;
-  --text: #1d2129;
+  --text: #1a1040;
   --text-2: #4e5969;
-  --text-3: #86909c;
-  --border: #e5e6eb;
+  --text-3: #9e9bb5;
+  --border: #e8e4f5;
   --success: #00b42a;
   --success-bg: #e8ffea;
   --error: #f53f3f;
   --error-bg: #fff1f0;
   --warning: #ff7d00;
   --warning-bg: #fff7e8;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
-  --r: 8px;
-  --r-sm: 6px;
-  --r-lg: 12px;
+  --shadow-sm: 0 1px 4px rgba(108,71,255,0.07);
+  --shadow: 0 2px 12px rgba(108,71,255,0.10);
+  --shadow-md: 0 4px 20px rgba(108,71,255,0.13);
+  --r: 12px;
+  --r-sm: 8px;
+  --r-lg: 16px;
 }
 
 body {
@@ -114,7 +114,7 @@ body {
   cursor: pointer;
   transition: background 0.15s;
 }
-.new-chat-btn:hover { background: #bae0ff; }
+.new-chat-btn:hover { background: var(--primary-light); }
 
 /* ==================== 内容区 ==================== */
 .content-wrapper {
@@ -253,8 +253,8 @@ body {
   margin: 20px 20px 0;
   padding: 24px 28px;
   border-radius: var(--r-lg);
-  background: linear-gradient(120deg, #e0edff 0%, #eaf5ff 55%, #f5fbff 100%);
-  border: 1px solid #c3deff;
+  background: linear-gradient(120deg, var(--primary-light) 0%, #eeedff 55%, var(--primary-lighter) 100%);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -267,7 +267,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(22,119,255,0.1);
+  background: rgba(108,71,255,0.1);
   color: var(--primary);
   font-size: 12px;
   font-weight: 600;
@@ -295,7 +295,7 @@ body {
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1677ff 0%, #69b1ff 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #9b7fff 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -466,12 +466,52 @@ body {
 .guide-panel {
   padding: 10px 20px 8px;
   border-top: 1px solid var(--border);
-  background: #f8fafc;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
+
+/* 模型下拉选择器 */
+.model-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1.5px solid var(--primary);
+  border-radius: 20px;
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.model-dropdown:hover { background: var(--primary-light); }
+.model-dropdown-arrow { font-size: 10px; opacity: 0.7; }
+.model-default-badge {
+  font-size: 10px; font-weight: 400;
+  background: var(--primary-light); color: var(--primary);
+  padding: 1px 5px; border-radius: 8px;
+}
+.model-dropdown-menu {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--shadow-md);
+  z-index: 100; min-width: 160px; overflow: hidden;
+}
+.model-menu-item {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; width: 100%; padding: 9px 14px;
+  border: none; background: transparent; cursor: pointer;
+  font-size: 13px; color: var(--text-2); text-align: left;
+  transition: background 0.12s;
+}
+.model-menu-item:hover { background: var(--primary-light); color: var(--primary); }
+.model-menu-item.active { color: var(--primary); font-weight: 600; background: var(--primary-lighter); }
 
 .guide-row { display: flex; align-items: flex-start; gap: 10px; }
 .guide-row-label {
@@ -517,7 +557,7 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s;
   background: var(--bg); color: var(--text);
 }
-.chat-textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(22,119,255,0.1); }
+.chat-textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(108,71,255,0.1); }
 .chat-textarea:disabled { cursor: not-allowed; opacity: 0.6; }
 
 .send-btn {
@@ -532,33 +572,35 @@ body {
 
 /* ==================== 建议问题栏 ==================== */
 .suggestion-bar {
-  padding: 8px 20px 10px;
+  padding: 8px 16px 12px;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  flex-wrap: nowrap;
-  overflow-x: auto;
   flex-shrink: 0;
 }
-.suggestion-bar::-webkit-scrollbar { height: 0; }
-
-.suggestion-chip {
-  padding: 4px 13px; border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--surface); color: var(--text-2);
-  font-size: 12px; cursor: pointer; white-space: nowrap;
-  transition: all 0.15s; flex-shrink: 0;
+.suggestion-bar-header {
+  display: flex; align-items: center; justify-content: flex-end;
+  margin-bottom: 6px;
 }
-.suggestion-chip:hover { border-color: var(--primary); color: var(--primary); }
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.suggestion-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg); color: var(--text-2);
+  font-size: 12px; cursor: pointer; text-align: left;
+  line-height: 1.4; transition: all 0.15s;
+}
+.suggestion-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.suggestion-chip-icon { font-size: 14px; flex-shrink: 0; }
 
 .suggestion-refresh {
-  margin-left: auto; padding: 4px 8px;
-  border: none; background: transparent;
-  color: var(--text-3); font-size: 12px;
-  cursor: pointer; white-space: nowrap; flex-shrink: 0;
-  transition: color 0.15s;
+  padding: 2px 6px; border: none; background: transparent;
+  color: var(--text-3); font-size: 11px;
+  cursor: pointer; transition: color 0.15s;
 }
 .suggestion-refresh:hover { color: var(--primary); }
 
