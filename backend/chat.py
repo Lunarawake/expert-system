@@ -122,6 +122,7 @@ async def chat(
     session_id: str,
     user_message: str,
     model_id: Optional[str] = None,
+    kb_group: Optional[str] = None,
 ) -> Dict[str, Any]:
     # 1. 选定模型
     if model_id:
@@ -136,8 +137,8 @@ async def chat(
         return {"answer": "⚠️ 尚未配置任何模型，请前往「模型配置」页面添加模型后再使用。",
                 "sources": [], "session_id": session_id, "model_used": None}
 
-    # 2. 知识库检索
-    chunks = retrieve(user_message)
+    # 2. 知识库检索（kb_group=None/'all' 时搜全库）
+    chunks = retrieve(user_message, kb_group=kb_group)
     context = format_context(chunks)
     sources = get_source_files(chunks)
 

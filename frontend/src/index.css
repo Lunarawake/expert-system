@@ -958,6 +958,31 @@ code.model-card-value {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
+/* ==================== 知识库分组 ==================== */
+.kb-group-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.kb-group-label {
+  font-size: 12px; font-weight: 700; color: var(--text-3);
+  white-space: nowrap; min-width: 52px;
+}
+
+.kb-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.kb-badge-general { background: #f0f0f0; color: #595959; }
+.kb-badge-sic     { background: var(--primary-light); color: var(--primary); }
+.kb-badge-diamond { background: #e6fffb; color: #08979c; }
+
 /* ==================== 响应式 ==================== */
 @media (max-width: 1024px) {
   .right-panel { display: none; }

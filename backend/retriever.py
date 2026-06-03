@@ -9,9 +9,9 @@ from knowledge_base import get_all_chunks
 from config import settings
 
 
-def retrieve(query: str, top_k: int = None) -> List[Dict[str, Any]]:
+def retrieve(query: str, top_k: int = None, kb_group: str = None) -> List[Dict[str, Any]]:
     top_k = top_k or settings.TOP_K
-    all_chunks = get_all_chunks()
+    all_chunks = get_all_chunks(kb_group)
     if not all_chunks:
         return []
 

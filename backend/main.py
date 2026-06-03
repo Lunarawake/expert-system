@@ -6,7 +6,7 @@ import os
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
@@ -46,6 +46,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     message: str
     model_id: Optional[str] = None
+    kb_group: Optional[str] = None  # None / 'all' = 搜索所有库
 
 
 class ModelCreate(BaseModel):
@@ -67,18 +68,23 @@ class ModelUpdate(BaseModel):
 # ==================== 文档管理 ====================
 
 @app.post("/upload", summary="上传文档入库")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    kb_group: str = Form("general"),
+):
     filename = file.filename or "unknown"
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in ("pdf", "docx"):
         raise HTTPException(400, "仅支持 PDF 和 Word(.docx) 格式")
+    if kb_group not in ("general", "sic", "diamond"):
+        kb_group = "general"
 
     temp_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4()}.{ext}")
     try:
         content = await file.read()
         with open(temp_path, "wb") as f:
             f.write(content)
-        result = add_document(filename, temp_path, ext)
+        result = add_document(filename, temp_path, ext, kb_group)
     except ValueError as e:
         raise HTTPException(422, str(e))
     except Exception as e:
@@ -113,7 +119,7 @@ async def chat_endpoint(request: ChatRequest):
     if not request.message.strip():
         raise HTTPException(400, "消息不能为空")
     session_id = request.session_id or str(uuid.uuid4())
-    result = await do_chat(session_id, request.message, request.model_id)
+    result = await do_chat(session_id, request.message, request.model_id, request.kb_group)
     return {"success": True, "data": result}
 
 

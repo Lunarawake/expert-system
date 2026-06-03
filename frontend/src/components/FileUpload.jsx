@@ -3,11 +3,27 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
+const KB_GROUPS = [
+  { id: 'general', label: '通用库',   icon: '📚', color: 'general' },
+  { id: 'sic',     label: '碳化硅库', icon: '💎', color: 'sic'     },
+  { id: 'diamond', label: '金刚石库', icon: '✨', color: 'diamond'  },
+]
+
+function KbBadge({ group }) {
+  const cfg = KB_GROUPS.find(g => g.id === group) || KB_GROUPS[0]
+  return (
+    <span className={`kb-badge kb-badge-${cfg.color}`}>
+      {cfg.icon} {cfg.label}
+    </span>
+  )
+}
+
 function FileUpload() {
   const [documents, setDocuments] = useState([])
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [alert, setAlert] = useState(null)
+  const [selectedGroup, setSelectedGroup] = useState('general')
   const fileInputRef = useRef(null)
 
   useEffect(() => { loadDocuments() }, [])
@@ -35,6 +51,7 @@ function FileUpload() {
     setAlert(null)
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('kb_group', selectedGroup)
     try {
       const res = await axios.post(`${API}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -47,7 +64,7 @@ function FileUpload() {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
-  }, [])
+  }, [selectedGroup])
 
   const handleFileSelect = (e) => { const f = e.target.files?.[0]; if (f) uploadFile(f) }
 
@@ -70,7 +87,7 @@ function FileUpload() {
   return (
     <div>
       <h2 className="section-title">📄 文档管理</h2>
-      <p className="section-subtitle">上传 PDF 或 Word 文档，系统自动分块向量化，建立专业知识库</p>
+      <p className="section-subtitle">上传 PDF 或 Word 文档，系统自动分块建立专家知识库</p>
 
       {alert && (
         <div className={`alert alert-${alert.type === 'error' ? 'error' : 'success'}`}>
@@ -78,6 +95,22 @@ function FileUpload() {
           <span>{alert.text}</span>
         </div>
       )}
+
+      {/* 专家库选择 */}
+      <div className="kb-group-selector">
+        <span className="kb-group-label">归属专家库</span>
+        <div className="tag-group">
+          {KB_GROUPS.map(g => (
+            <button
+              key={g.id}
+              className={`tag ${selectedGroup === g.id ? 'tag-cat-selected' : ''}`}
+              onClick={() => setSelectedGroup(g.id)}
+            >
+              {g.icon} {g.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* 上传区域 */}
       <div
@@ -90,7 +123,10 @@ function FileUpload() {
         <input ref={fileInputRef} type="file" accept=".pdf,.docx" onChange={handleFileSelect} style={{ display: 'none' }} />
         <div className="upload-icon">{uploading ? '⏳' : '📁'}</div>
         <div className="upload-text">
-          {uploading ? '正在解析文档并入库，请稍候...' : '点击选择文件，或将文件拖拽到此处'}
+          {uploading
+            ? '正在解析文档并入库，请稍候...'
+            : <>点击选择文件，或将文件拖拽到此处<br /><small style={{ color: 'var(--text-3)', fontSize: 12 }}>将入库到：{KB_GROUPS.find(g => g.id === selectedGroup)?.label}</small></>
+          }
         </div>
         <div className="upload-hint">支持 PDF、Word(.docx) 格式，单次上传一个文件</div>
         {uploading && <div className="progress-bar"><div className="progress-fill" /></div>}
@@ -116,7 +152,10 @@ function FileUpload() {
                 <span className="doc-icon">{getDocIcon(doc.filename)}</span>
                 <div style={{ minWidth: 0 }}>
                   <div className="doc-name" title={doc.filename}>{doc.filename}</div>
-                  <div className="doc-meta">{doc.chunk_count} 个文本块</div>
+                  <div className="doc-meta" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                    <KbBadge group={doc.kb_group || 'general'} />
+                    <span>{doc.chunk_count} 个文本块</span>
+                  </div>
                 </div>
               </div>
               <button

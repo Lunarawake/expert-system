@@ -5,7 +5,7 @@
 """
 import uuid
 import sqlite3
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from pypdf import PdfReader
 from docx import Document as DocxDocument
@@ -25,9 +25,17 @@ _conn.execute("""
         doc_id      TEXT NOT NULL,
         filename    TEXT NOT NULL,
         chunk_index INTEGER NOT NULL,
-        content     TEXT NOT NULL
+        content     TEXT NOT NULL,
+        kb_group    TEXT NOT NULL DEFAULT 'general'
     )
 """)
+# 迁移：为已有数据库补充 kb_group 列
+try:
+    _conn.execute("ALTER TABLE chunks ADD COLUMN kb_group TEXT NOT NULL DEFAULT 'general'")
+    _conn.commit()
+    print("✅ 已迁移：chunks 表新增 kb_group 列", flush=True)
+except Exception:
+    pass  # 列已存在，忽略
 _conn.commit()
 print("✅ SQLite 知识库初始化完成", flush=True)
 
@@ -68,7 +76,8 @@ def chunk_text(text: str, chunk_size: int = None, overlap: int = None) -> List[s
 
 # ==================== 文档入库 ====================
 
-def add_document(filename: str, file_path: str, file_type: str) -> Dict[str, Any]:
+def add_document(filename: str, file_path: str, file_type: str,
+                 kb_group: str = "general") -> Dict[str, Any]:
     if file_type == "pdf":
         text = parse_pdf(file_path)
     elif file_type == "docx":
@@ -85,14 +94,17 @@ def add_document(filename: str, file_path: str, file_type: str) -> Dict[str, Any
 
     doc_id = str(uuid.uuid4())
     _conn.executemany(
-        "INSERT INTO chunks (id, doc_id, filename, chunk_index, content) VALUES (?, ?, ?, ?, ?)",
-        [(f"{doc_id}_{i}", doc_id, filename, i, chunk) for i, chunk in enumerate(chunks)],
+        "INSERT INTO chunks (id, doc_id, filename, chunk_index, content, kb_group) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        [(f"{doc_id}_{i}", doc_id, filename, i, chunk, kb_group)
+         for i, chunk in enumerate(chunks)],
     )
     _conn.commit()
 
     return {
         "doc_id": doc_id,
         "filename": filename,
+        "kb_group": kb_group,
         "chunk_count": len(chunks),
         "char_count": len(text),
     }
@@ -102,9 +114,13 @@ def add_document(filename: str, file_path: str, file_type: str) -> Dict[str, Any
 
 def get_all_documents() -> List[Dict[str, Any]]:
     cur = _conn.execute(
-        "SELECT doc_id, filename, COUNT(*) FROM chunks GROUP BY doc_id, filename"
+        "SELECT doc_id, filename, kb_group, COUNT(*) "
+        "FROM chunks GROUP BY doc_id, filename, kb_group"
     )
-    return [{"doc_id": r[0], "filename": r[1], "chunk_count": r[2]} for r in cur.fetchall()]
+    return [
+        {"doc_id": r[0], "filename": r[1], "kb_group": r[2], "chunk_count": r[3]}
+        for r in cur.fetchall()
+    ]
 
 
 def delete_document(doc_id: str) -> bool:
@@ -116,11 +132,18 @@ def delete_document(doc_id: str) -> bool:
     return True
 
 
-def get_all_chunks() -> List[Dict[str, Any]]:
-    """供 retriever.py 调用，返回全部分块用于 jieba 检索"""
-    cur = _conn.execute(
-        "SELECT id, doc_id, filename, chunk_index, content FROM chunks"
-    )
+def get_all_chunks(kb_group: Optional[str] = None) -> List[Dict[str, Any]]:
+    """供 retriever.py 调用；kb_group=None 或 'all' 时返回全部分块"""
+    if kb_group and kb_group != "all":
+        cur = _conn.execute(
+            "SELECT id, doc_id, filename, chunk_index, content "
+            "FROM chunks WHERE kb_group = ?",
+            (kb_group,),
+        )
+    else:
+        cur = _conn.execute(
+            "SELECT id, doc_id, filename, chunk_index, content FROM chunks"
+        )
     return [
         {"id": r[0], "doc_id": r[1], "filename": r[2], "chunk_index": r[3], "content": r[4]}
         for r in cur.fetchall()

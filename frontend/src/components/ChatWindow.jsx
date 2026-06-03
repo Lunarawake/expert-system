@@ -5,6 +5,14 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
+// ==================== 知识库分组配置 ====================
+const KB_GROUPS = [
+  { id: 'all',     label: '全部',     icon: '🔍' },
+  { id: 'general', label: '通用库',   icon: '📚' },
+  { id: 'sic',     label: '碳化硅库', icon: '💎' },
+  { id: 'diamond', label: '金刚石库', icon: '✨' },
+]
+
 // ==================== 引导式提问配置 ====================
 const GUIDE_CONFIG = [
   {
@@ -141,6 +149,10 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const [selectedModelId, setSelectedModelId] = useState(null)
   const [showModelMenu, setShowModelMenu] = useState(false)
 
+  // 知识库分组
+  const [selectedKbGroup, setSelectedKbGroup] = useState('all')
+  const [showKbMenu, setShowKbMenu] = useState(false)
+
   // 引导选择
   const [selectedCatId, setSelectedCatId] = useState(null)
   const [selectedDirs, setSelectedDirs] = useState([])
@@ -148,6 +160,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
   const modelMenuRef = useRef(null)
+  const kbMenuRef = useRef(null)
 
   const currentCat = GUIDE_CONFIG.find(c => c.id === selectedCatId)
   const currentModel = models.find(m => m.id === selectedModelId)
@@ -205,6 +218,18 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [showModelMenu])
 
+  // 点击外部关闭知识库下拉
+  useEffect(() => {
+    if (!showKbMenu) return
+    const handler = (e) => {
+      if (kbMenuRef.current && !kbMenuRef.current.contains(e.target)) {
+        setShowKbMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showKbMenu])
+
   const autoResize = () => {
     const el = textareaRef.current
     if (!el) return
@@ -239,6 +264,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         session_id: sessionId,
         message: finalMsg,
         model_id: selectedModelId,
+        kb_group: selectedKbGroup,
       })
       const { answer, model_used } = res.data.data
       setMessages(prev => [...prev, { role: 'assistant', content: answer, model_used }])
@@ -251,7 +277,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     } finally {
       setLoading(false)
     }
-  }, [canSend, currentCat, selectedDirs, input, sessionId, selectedModelId, sessionTitle])
+  }, [canSend, currentCat, selectedDirs, input, sessionId, selectedModelId, selectedKbGroup, sessionTitle])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
@@ -347,6 +373,31 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
               )}
             </div>
           )}
+        </div>
+
+        {/* 知识库分组 */}
+        <div className="guide-row">
+          <span className="guide-row-label">知识库</span>
+          <div ref={kbMenuRef} style={{ position: 'relative', display: 'inline-block' }}>
+            <button className="model-dropdown" onClick={() => setShowKbMenu(v => !v)}>
+              <span>{KB_GROUPS.find(g => g.id === selectedKbGroup)?.icon} {KB_GROUPS.find(g => g.id === selectedKbGroup)?.label}</span>
+              <span className="model-dropdown-arrow">{showKbMenu ? '▴' : '▾'}</span>
+            </button>
+            {showKbMenu && (
+              <div className="model-dropdown-menu">
+                {KB_GROUPS.map(g => (
+                  <button
+                    key={g.id}
+                    className={`model-menu-item ${selectedKbGroup === g.id ? 'active' : ''}`}
+                    onClick={() => { setSelectedKbGroup(g.id); setShowKbMenu(false) }}
+                  >
+                    <span>{g.icon} {g.label}</span>
+                    {g.id === 'all' && <span style={{ fontSize: 10, color: 'var(--text-3)' }}>默认</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 第一级：产品类别 */}
