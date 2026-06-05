@@ -4,11 +4,15 @@ import ChatWindow from './components/ChatWindow'
 import FileUpload from './components/FileUpload'
 import ModelConfig from './components/ModelConfig'
 import RightPanel from './components/RightPanel'
+import Stats from './components/Stats'
+import Workflow from './components/Workflow'
 
 const PAGE_TITLES = {
-  chat:   '智能问答',
-  docs:   '文档管理',
-  config: '模型配置',
+  chat:     '智能问答',
+  docs:     '文档管理',
+  config:   '模型配置',
+  stats:    '使用统计',
+  workflow: '工作流管理',
 }
 
 function getOrCreateSessionId() {
@@ -99,8 +103,10 @@ function App() {
             </>
           ) : (
             <div className="page-content">
-              {activeNav === 'docs'   && <FileUpload />}
-              {activeNav === 'config' && <ModelConfig />}
+              {activeNav === 'docs'     && <FileUpload />}
+              {activeNav === 'config'   && <ModelConfig />}
+              {activeNav === 'stats'    && <Stats />}
+              {activeNav === 'workflow' && <Workflow />}
             </div>
           )}
         </div>

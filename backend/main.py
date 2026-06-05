@@ -19,6 +19,14 @@ from chat import (
     get_all_sessions,
     get_session,
 )
+from stats import (
+    record_query,
+    record_feedback,
+    get_summary,
+    get_recent_queries,
+    get_top_questions,
+)
+from workflow import get_all_workflows, toggle_workflow, increment_run_count
 
 # ==================== 应用初始化 ====================
 
@@ -47,6 +55,16 @@ class ChatRequest(BaseModel):
     message: str
     model_id: Optional[str] = None
     kb_group: Optional[str] = None  # None / 'all' = 搜索所有库
+
+
+class FeedbackRequest(BaseModel):
+    session_id: str
+    msg_index: int
+    feedback: str  # 'up' | 'down'
+
+
+class WorkflowToggleRequest(BaseModel):
+    enabled: bool
 
 
 class ModelCreate(BaseModel):
@@ -85,6 +103,7 @@ async def upload_document(
         with open(temp_path, "wb") as f:
             f.write(content)
         result = add_document(filename, temp_path, ext, kb_group)
+        increment_run_count("doc_auto_import")
     except ValueError as e:
         raise HTTPException(422, str(e))
     except Exception as e:
@@ -120,6 +139,7 @@ async def chat_endpoint(request: ChatRequest):
         raise HTTPException(400, "消息不能为空")
     session_id = request.session_id or str(uuid.uuid4())
     result = await do_chat(session_id, request.message, request.model_id, request.kb_group)
+    record_query(session_id, request.message, result.get("model_used"), request.kb_group)
     return {"success": True, "data": result}
 
 
@@ -215,6 +235,48 @@ async def set_default(model_id: str):
     if not cfg.set_default_model(model_id):
         raise HTTPException(404, "模型不存在")
     return {"success": True, "message": "已设为默认模型"}
+
+
+# ==================== 使用统计 ====================
+
+@app.get("/stats/summary", summary="统计概览")
+async def stats_summary():
+    return {"success": True, "data": get_summary()}
+
+
+@app.get("/stats/recent", summary="最近提问记录")
+async def stats_recent(limit: int = 10):
+    return {"success": True, "data": get_recent_queries(min(limit, 50))}
+
+
+@app.get("/stats/top", summary="Top5 高频问题")
+async def stats_top(limit: int = 5):
+    return {"success": True, "data": get_top_questions(limit)}
+
+
+@app.post("/feedback", summary="提交问答反馈")
+async def submit_feedback(body: FeedbackRequest):
+    if body.feedback not in ("up", "down"):
+        raise HTTPException(400, "feedback 只能是 'up' 或 'down'")
+    record_feedback(body.session_id, body.msg_index, body.feedback)
+    increment_run_count("answer_feedback")
+    return {"success": True, "message": "反馈已记录"}
+
+
+# ==================== 工作流管理 ====================
+
+@app.get("/workflows", summary="获取工作流列表")
+async def list_workflows():
+    return {"success": True, "data": get_all_workflows()}
+
+
+@app.put("/workflows/{workflow_id}/toggle", summary="切换工作流开关")
+async def toggle_wf(workflow_id: str, body: WorkflowToggleRequest):
+    ok = toggle_workflow(workflow_id, body.enabled)
+    if not ok:
+        raise HTTPException(404, "工作流不存在")
+    state = "已开启" if body.enabled else "已关闭"
+    return {"success": True, "message": f"工作流{state}"}
 
 
 # ==================== 系统信息 ====================

@@ -1,14 +1,12 @@
 // 侧边栏导航组件
 
 const NAV_ITEMS = [
-  // 可用功能
-  { id: 'chat',   label: '智能问答', icon: '💬' },
-  { id: 'docs',   label: '文档管理', icon: '📄' },
-  { id: 'config', label: '模型配置', icon: '⚙️' },
-  // 占位功能（后续扩展）
+  { id: 'chat',     label: '智能问答',   icon: '💬' },
+  { id: 'docs',     label: '文档管理',   icon: '📄' },
+  { id: 'config',   label: '模型配置',   icon: '⚙️' },
   { id: null, divider: true },
-  { id: 'workflow', label: '工作流管理', icon: '🔄', disabled: true, tag: '即将上线' },
-  { id: 'stats',    label: '使用统计',   icon: '📊', disabled: true, tag: '即将上线' },
+  { id: 'workflow', label: '工作流管理', icon: '🔄' },
+  { id: 'stats',    label: '使用统计',   icon: '📊' },
 ]
 
 function Sidebar({ activeNav, onNavChange }) {
@@ -28,13 +26,12 @@ function Sidebar({ activeNav, onNavChange }) {
           return (
             <button
               key={item.id}
-              className={`nav-item ${activeNav === item.id ? 'active' : ''} ${item.disabled ? 'disabled' : ''}`}
-              onClick={() => !item.disabled && onNavChange(item.id)}
+              className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
+              onClick={() => onNavChange(item.id)}
               title={item.label}
             >
               <span className="nav-icon">{item.icon}</span>
               <span>{item.label}</span>
-              {item.tag && <span className="nav-tag">{item.tag}</span>}
             </button>
           )
         })}

@@ -88,10 +88,11 @@ function WelcomeBanner() {
   )
 }
 
-function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy }) {
+function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, ratedMsgs, onFeedback }) {
   const [sourcesExpanded, setSourcesExpanded] = useState(false)
   const { text, sources } = parseAnswer(content)
   const isCopied = copiedIdx === msgIdx
+  const rated = ratedMsgs?.[msgIdx]
 
   return (
     <div className="message assistant">
@@ -128,6 +129,26 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy }) {
           >
             {isCopied ? '✓ 已复制' : '📋 复制'}
           </button>
+          {onFeedback && (
+            <>
+              <button
+                className={`msg-action-btn ${rated === 'up' ? 'feedback-up' : ''}`}
+                onClick={() => onFeedback(msgIdx, 'up')}
+                disabled={!!rated}
+                title="这个回答很有帮助"
+              >
+                {rated === 'up' ? '👍 已点赞' : '👍'}
+              </button>
+              <button
+                className={`msg-action-btn ${rated === 'down' ? 'feedback-down' : ''}`}
+                onClick={() => onFeedback(msgIdx, 'down')}
+                disabled={!!rated}
+                title="这个回答需要改进"
+              >
+                {rated === 'down' ? '👎 已踩' : '👎'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -143,6 +164,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const [loading, setLoading] = useState(false)
   const [copiedIdx, setCopiedIdx] = useState(null)
   const [suggestionPage, setSuggestionPage] = useState(0)
+  const [ratedMsgs, setRatedMsgs] = useState({}) // { msgIdx: 'up'|'down' }
 
   // 多模型选择
   const [models, setModels] = useState([])
@@ -186,6 +208,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     setMessages([])
     setSessionTitle('')
     setInput('')
+    setRatedMsgs({})
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
 
     axios.get(`${API}/sessions/${sessionId}`)
@@ -289,6 +312,21 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     setTimeout(() => setCopiedIdx(null), 2000)
   }
 
+  const handleFeedback = async (msgIdx, type) => {
+    if (ratedMsgs[msgIdx]) return
+    setRatedMsgs(prev => ({ ...prev, [msgIdx]: type }))
+    try {
+      await axios.post(`${API}/feedback`, {
+        session_id: sessionId,
+        msg_index: msgIdx,
+        feedback: type,
+      })
+    } catch {
+      // 失败时回滚
+      setRatedMsgs(prev => { const n = { ...prev }; delete n[msgIdx]; return n })
+    }
+  }
+
   const textareaPlaceholder = !selectedModelId
     ? '请先选择要使用的模型...'
     : !selectedCatId
@@ -325,6 +363,8 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
               usedModel={msg.model_used}
               copiedIdx={copiedIdx}
               onCopy={copyMessage}
+              ratedMsgs={ratedMsgs}
+              onFeedback={handleFeedback}
             />
           )
         )}
