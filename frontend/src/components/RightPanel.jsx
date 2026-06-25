@@ -1,6 +1,7 @@
 // 右侧面板：知识库概览、快速上传、最近文档、历史对话
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { CheckCircleIcon, XCircleIcon, LoaderIcon, UploadIcon, FileTextIcon, ChatIcon, XIcon } from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -92,8 +93,6 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
     return n.toString()
   }
 
-  const getDocIcon = (name) => name.toLowerCase().endsWith('.pdf') ? '📕' : '📘'
-
   return (
     <aside className="right-panel">
       {/* 知识库概览 */}
@@ -118,11 +117,13 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
       <div style={{ padding: '12px 18px 4px' }}>
         {uploadMsg && (
           <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
             fontSize: 12, padding: '5px 10px', borderRadius: 6, marginBottom: 8,
             background: uploadMsg.type === 'ok' ? 'var(--success-bg)' : 'var(--error-bg)',
             color: uploadMsg.type === 'ok' ? 'var(--success)' : 'var(--error)',
           }}>
-            {uploadMsg.type === 'ok' ? '✅ ' : '❌ '}{uploadMsg.text}
+            {uploadMsg.type === 'ok' ? <CheckCircleIcon size={14} /> : <XCircleIcon size={14} />}
+            {uploadMsg.text}
           </div>
         )}
         <input
@@ -134,7 +135,9 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
           className={`panel-upload ${uploading ? 'disabled' : ''}`}
           onClick={() => !uploading && fileInputRef.current?.click()}
         >
-          <div className="panel-upload-icon">{uploading ? '⏳' : '⬆'}</div>
+          <div className={`panel-upload-icon ${uploading ? 'spin' : ''}`}>
+            {uploading ? <LoaderIcon size={18} /> : <UploadIcon size={18} />}
+          </div>
           <div>
             <div className="panel-upload-text">{uploading ? '上传中...' : '上传文档'}</div>
             <div className="panel-upload-hint">支持 PDF / Word 格式</div>
@@ -149,7 +152,7 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
           <div className="panel-doc-list">
             {docs.slice(0, 3).map(doc => (
               <div key={doc.doc_id} className="panel-doc-item">
-                <span className="panel-doc-icon">{getDocIcon(doc.filename)}</span>
+                <span className="panel-doc-icon"><FileTextIcon size={18} /></span>
                 <div className="panel-doc-info">
                   <div className="panel-doc-name" title={doc.filename}>{doc.filename}</div>
                   <div className="panel-doc-meta">{doc.chunk_count} 个文本块</div>
@@ -176,7 +179,9 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
 
         {sessions.length === 0 ? (
           <div className="panel-empty">
-            <div style={{ fontSize: 28, marginBottom: 6 }}>💬</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, color: 'var(--text-3)', opacity: 0.6 }}>
+              <ChatIcon size={26} />
+            </div>
             <div style={{ fontSize: 12, color: 'var(--text-3)' }}>暂无历史对话</div>
           </div>
         ) : (
@@ -188,7 +193,7 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
                 onClick={() => onSessionSelect?.(s.session_id)}
                 title={s.title}
               >
-                <div className="session-item-icon">💬</div>
+                <div className="session-item-icon"><ChatIcon size={15} /></div>
                 <div className="session-item-body">
                   <div className="session-item-title">{s.title}</div>
                   <div className="session-item-meta">
@@ -201,7 +206,7 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
                   onClick={(e) => handleDeleteSession(e, s.session_id)}
                   title="删除此对话"
                 >
-                  ✕
+                  <XIcon size={11} />
                 </button>
               </div>
             ))}

@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
+import {
+  ChartIcon, ChatIcon, SunIcon, FileTextIcon, ThumbsUpIcon, ThumbsDownIcon,
+  RefreshIcon, ClockIcon, SearchIcon, TrendingUpIcon,
+} from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -64,7 +68,9 @@ function Stats() {
   if (loading) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-3)' }}>
-        <div style={{ fontSize: 32, marginBottom: 10 }}>📊</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, opacity: 0.5 }}>
+          <ChartIcon size={32} />
+        </div>
         <div>加载统计数据中…</div>
       </div>
     )
@@ -76,30 +82,30 @@ function Stats() {
     <div className="stats-page">
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h2 className="section-title">📊 使用统计</h2>
+          <h2 className="section-title"><ChartIcon size={20} /> 使用统计</h2>
           <p className="section-subtitle">记录每次提问，帮助了解系统使用情况和知识库状态</p>
         </div>
-        <button className="btn btn-ghost" style={{ marginTop: 4 }} onClick={load}>↻ 刷新</button>
+        <button className="btn btn-ghost" style={{ marginTop: 4 }} onClick={load}><RefreshIcon size={13} /> 刷新</button>
       </div>
 
       {/* 概览卡片 */}
       <div className="stats-summary-grid">
-        <SummaryCard icon="💬" label="总提问次数" value={s.total_queries ?? 0} accent />
-        <SummaryCard icon="🌅" label="今日提问" value={s.today_queries ?? 0}
+        <SummaryCard icon={<ChatIcon size={20} />} label="总提问次数" value={s.total_queries ?? 0} accent />
+        <SummaryCard icon={<SunIcon size={20} />} label="今日提问" value={s.today_queries ?? 0}
           sub={s.total_queries ? `占总量 ${Math.round(((s.today_queries ?? 0) / s.total_queries) * 100)}%` : undefined} />
-        <SummaryCard icon="📄" label="知识库文档" value={s.doc_count ?? 0} sub="份文档" />
-        <SummaryCard icon="📝" label="总字数（估算）" value={formatChars(s.total_chars ?? 0)} />
+        <SummaryCard icon={<FileTextIcon size={20} />} label="知识库文档" value={s.doc_count ?? 0} sub="份文档" />
+        <SummaryCard icon={<FileTextIcon size={20} />} label="总字数（估算）" value={formatChars(s.total_chars ?? 0)} />
       </div>
 
       {/* 反馈统计 */}
       {(s.feedback_up > 0 || s.feedback_down > 0) && (
         <div className="stats-feedback-row">
           <span className="stats-feedback-item up">
-            <span>👍</span>
+            <ThumbsUpIcon size={14} />
             <span>点赞 {s.feedback_up}</span>
           </span>
           <span className="stats-feedback-item down">
-            <span>👎</span>
+            <ThumbsDownIcon size={14} />
             <span>踩 {s.feedback_down}</span>
           </span>
           {(s.feedback_up + s.feedback_down) > 0 && (
@@ -114,12 +120,12 @@ function Stats() {
         {/* 最近提问记录 */}
         <div className="card stats-section-card">
           <div className="stats-section-header">
-            <span>🕐 最近提问记录</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ClockIcon size={15} /> 最近提问记录</span>
             <span className="stats-section-count">{recent.length} 条</span>
           </div>
           {recent.length === 0 ? (
             <div className="empty-state" style={{ padding: '28px 0' }}>
-              <div className="empty-state-icon" style={{ fontSize: 32 }}>🔍</div>
+              <div className="empty-state-icon" style={{ opacity: 0.5 }}><SearchIcon size={28} /></div>
               <div className="empty-state-hint">暂无提问记录</div>
             </div>
           ) : (
@@ -143,11 +149,11 @@ function Stats() {
         {/* Top5 高频问题 */}
         <div className="card stats-section-card">
           <div className="stats-section-header">
-            <span>🏆 高频问题 Top 5</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><TrendingUpIcon size={15} /> 高频问题 Top 5</span>
           </div>
           {top.length === 0 ? (
             <div className="empty-state" style={{ padding: '28px 0' }}>
-              <div className="empty-state-icon" style={{ fontSize: 32 }}>📋</div>
+              <div className="empty-state-icon" style={{ opacity: 0.5 }}><FileTextIcon size={28} /></div>
               <div className="empty-state-hint">暂无数据</div>
             </div>
           ) : (

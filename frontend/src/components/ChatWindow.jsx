@@ -2,16 +2,20 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import axios from 'axios'
-import { ChipIcon } from './Icons'
+import {
+  ChipIcon, BookIcon, GemIcon, CrystalIcon, SearchIcon, SparkleIcon,
+  CopyIcon, ThumbsUpIcon, ThumbsDownIcon, UserIcon, AlertTriangleIcon,
+  TagIcon, CheckIcon, SendIcon, RefreshIcon, ChatIcon,
+} from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
 // ==================== 知识库分组配置 ====================
 const KB_GROUPS = [
-  { id: 'all',     label: '全部',     icon: '🔍' },
-  { id: 'general', label: '通用库',   icon: '📚' },
-  { id: 'sic',     label: '碳化硅库', icon: '💎' },
-  { id: 'diamond', label: '金刚石库', icon: '✨' },
+  { id: 'all',     label: '全部',     Icon: SearchIcon },
+  { id: 'general', label: '通用库',   Icon: BookIcon },
+  { id: 'sic',     label: '碳化硅库', Icon: CrystalIcon },
+  { id: 'diamond', label: '金刚石库', Icon: GemIcon },
 ]
 
 // ==================== 引导式提问配置 ====================
@@ -83,7 +87,7 @@ function WelcomeBanner() {
   return (
     <div className="welcome-banner">
       <div className="welcome-text">
-        <div className="welcome-tag">✨ AI 专家助手</div>
+        <div className="welcome-tag"><SparkleIcon size={13} /> AI 专家助手</div>
         <h2 className="welcome-title">您好，我是数字专家</h2>
         <p className="welcome-subtitle">
           基于知识库和大模型的智能问答助手<br />
@@ -91,7 +95,7 @@ function WelcomeBanner() {
         </p>
       </div>
       <div className="welcome-avatar-wrap">
-        <div className="welcome-avatar-circle">🤖</div>
+        <div className="welcome-avatar-circle"><ChipIcon size={36} /></div>
       </div>
     </div>
   )
@@ -105,22 +109,23 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, rated
 
   return (
     <div className="message assistant">
-      <div className="msg-avatar ai">🤖</div>
+      <div className="msg-avatar ai"><ChipIcon size={16} /></div>
       <div className="ai-message-wrapper">
         {sources && (
           <button className="source-badge" onClick={() => setSourcesExpanded(v => !v)}>
-            <span>📚</span>
+            <BookIcon size={14} />
             <span>已搜索知识库，参考 <strong>{sources.length}</strong> 篇资料</span>
             <span className="source-badge-arrow">{sourcesExpanded ? '▴' : '▾'}</span>
           </button>
         )}
         {usedModel && (
           <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
             fontSize: 11, color: 'var(--text-3)', marginLeft: 2,
             background: 'var(--bg)', border: '1px solid var(--border)',
             padding: '1px 7px', borderRadius: 10, alignSelf: 'flex-start',
           }}>
-            🤖 {usedModel}
+            <ChipIcon size={11} /> {usedModel}
           </span>
         )}
         <div className="bubble ai-bubble">
@@ -136,7 +141,8 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, rated
             className={`msg-action-btn ${isCopied ? 'copied' : ''}`}
             onClick={() => onCopy(text, msgIdx)}
           >
-            {isCopied ? '✓ 已复制' : '📋 复制'}
+            {isCopied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
+            {isCopied ? '已复制' : '复制'}
           </button>
           {onFeedback && (
             <>
@@ -146,7 +152,7 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, rated
                 disabled={!!rated}
                 title="这个回答很有帮助"
               >
-                {rated === 'up' ? '👍 已点赞' : '👍'}
+                <ThumbsUpIcon size={12} /> {rated === 'up' ? '已点赞' : ''}
               </button>
               <button
                 className={`msg-action-btn ${rated === 'down' ? 'feedback-down' : ''}`}
@@ -154,7 +160,7 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, rated
                 disabled={!!rated}
                 title="这个回答需要改进"
               >
-                {rated === 'down' ? '👎 已踩' : '👎'}
+                <ThumbsDownIcon size={12} /> {rated === 'down' ? '已踩' : ''}
               </button>
             </>
           )}
@@ -378,7 +384,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         {/* 历史会话标题栏 */}
         {sessionTitle && messages.length > 0 && (
           <div className="session-title-bar">
-            <span className="session-title-icon">💬</span>
+            <span className="session-title-icon"><ChatIcon size={14} /></span>
             <span className="session-title-text">{sessionTitle}</span>
           </div>
         )}
@@ -387,7 +393,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
           msg.role === 'user' ? (
             <div key={i} className="message user">
               <div className="bubble user-bubble">{msg.content}</div>
-              <div className="msg-avatar">👤</div>
+              <div className="msg-avatar"><UserIcon size={16} /></div>
             </div>
           ) : (
             <AssistantMessage
@@ -405,7 +411,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
         {loading && (
           <div className="message assistant">
-            <div className="msg-avatar ai">🤖</div>
+            <div className="msg-avatar ai"><ChipIcon size={16} /></div>
             <div className="bubble ai-bubble">
               <div className="loading-dots"><span /><span /><span /></div>
             </div>
@@ -419,8 +425,8 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
       <div className="guide-bar">
         {/* 模型选择 */}
         {models.length === 0 ? (
-          <span style={{ fontSize: 12, color: 'var(--error)' }}>
-            ⚠️ 尚未配置模型，请前往「模型配置」页面添加
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--error)' }}>
+            <AlertTriangleIcon size={14} /> 尚未配置模型，请前往「模型配置」页面添加
           </span>
         ) : (
           <div ref={modelMenuRef} className="guide-bar-dropdown">
@@ -452,7 +458,11 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         {/* 知识库分组 */}
         <div ref={kbMenuRef} className="guide-bar-dropdown">
           <button className="model-dropdown" onClick={() => setShowKbMenu(v => !v)}>
-            <span>{KB_GROUPS.find(g => g.id === selectedKbGroup)?.icon} {KB_GROUPS.find(g => g.id === selectedKbGroup)?.label}</span>
+            {(() => {
+              const cur = KB_GROUPS.find(g => g.id === selectedKbGroup)
+              const CurIcon = cur?.Icon
+              return <>{CurIcon && <CurIcon size={14} />} <span>{cur?.label}</span></>
+            })()}
             <span className="model-dropdown-arrow">{showKbMenu ? '▴' : '▾'}</span>
           </button>
           {showKbMenu && (
@@ -463,7 +473,9 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
                   className={`model-menu-item ${selectedKbGroup === g.id ? 'active' : ''}`}
                   onClick={() => { setSelectedKbGroup(g.id); setShowKbMenu(false) }}
                 >
-                  <span>{g.icon} {g.label}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <g.Icon size={14} /> {g.label}
+                  </span>
                   {g.id === 'all' && <span style={{ fontSize: 10, color: 'var(--text-3)' }}>默认</span>}
                 </button>
               ))}
@@ -479,7 +491,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
             className={`category-trigger ${selectedCatId ? 'has-selection' : ''}`}
             onClick={() => setShowCatMenu(v => !v)}
           >
-            <span className="category-trigger-text">📂 {catSummaryText}</span>
+            <span className="category-trigger-text"><TagIcon size={14} /> {catSummaryText}</span>
             <span className="category-trigger-toggle">切换 {showCatMenu ? '▴' : '▾'}</span>
           </button>
 
@@ -521,7 +533,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
               <div className="category-overlay-footer">
                 <button className="btn btn-primary" style={{ fontSize: 12, padding: '5px 16px' }} onClick={() => setShowCatMenu(false)}>
-                  ✓ 完成
+                  <CheckIcon size={13} /> 完成
                 </button>
               </div>
             </div>
@@ -558,7 +570,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
             disabled={!canSend}
             title={!selectedModelId ? '请先选择模型' : !selectedCatId ? '请选择产品类别' : selectedDirs.length === 0 ? '请选择问题方向' : '发送'}
           >
-            ➤
+            <SendIcon size={16} />
           </button>
         </div>
       </div>
@@ -576,7 +588,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         </div>
         <div className="suggestion-bar-header">
           <button className="suggestion-refresh" onClick={() => setSuggestions(pickRandomSuggestions(ALL_SUGGESTIONS))}>
-            ↻ 换一换
+            <RefreshIcon size={12} /> 换一换
           </button>
         </div>
       </div>

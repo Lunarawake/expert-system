@@ -6,7 +6,7 @@ import ModelConfig from './components/ModelConfig'
 import RightPanel from './components/RightPanel'
 import Stats from './components/Stats'
 import Workflow from './components/Workflow'
-import { ChipIcon } from './components/Icons'
+import { ChipIcon, EditIcon } from './components/Icons'
 
 const PAGE_TITLES = {
   chat:     '智能问答',
@@ -65,7 +65,7 @@ function App() {
             {isChat && (
               <>
                 <button className="new-chat-btn" onClick={handleNewChat}>
-                  ✏️ 新对话
+                  <EditIcon size={14} /> 新对话
                 </button>
 
                 {modelName && (

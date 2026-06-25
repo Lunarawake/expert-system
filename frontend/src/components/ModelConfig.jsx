@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { SlidersIcon, PlusIcon, XCircleIcon, CheckCircleIcon, EditIcon, XIcon, SaveIcon, ChipIcon, InfoIcon } from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -115,16 +116,16 @@ function ModelConfig() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <h2 className="section-title" style={{ marginBottom: 0 }}>⚙️ 模型配置</h2>
+        <h2 className="section-title" style={{ marginBottom: 0 }}><SlidersIcon size={20} /> 模型配置</h2>
         <button className="btn btn-primary" style={{ gap: 6 }} onClick={openAdd}>
-          ＋ 添加模型
+          <PlusIcon size={15} /> 添加模型
         </button>
       </div>
       <p className="section-subtitle">配置多个大模型，提问时可自由切换使用</p>
 
       {alert && (
         <div className={`alert alert-${alert.type === 'error' ? 'error' : 'success'}`}>
-          <span>{alert.type === 'error' ? '❌' : '✅'}</span>
+          {alert.type === 'error' ? <XCircleIcon size={16} /> : <CheckCircleIcon size={16} />}
           <span>{alert.text}</span>
         </div>
       )}
@@ -133,8 +134,11 @@ function ModelConfig() {
       {showForm && (
         <div className="model-form">
           <div className="model-form-header">
-            <span>{editingId ? '✏️ 编辑模型' : '＋ 添加模型'}</span>
-            <button className="model-form-close" onClick={closeForm}>✕</button>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {editingId ? <EditIcon size={15} /> : <PlusIcon size={15} />}
+              {editingId ? '编辑模型' : '添加模型'}
+            </span>
+            <button className="model-form-close" onClick={closeForm}><XIcon size={13} /></button>
           </div>
 
           <div className="form-group">
@@ -189,7 +193,7 @@ function ModelConfig() {
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="btn btn-ghost" onClick={closeForm}>取消</button>
             <button className="btn btn-primary" onClick={save} disabled={saving}>
-              {saving ? '保存中...' : '💾 保存'}
+              {!saving && <SaveIcon size={14} />} {saving ? '保存中...' : '保存'}
             </button>
           </div>
         </div>
@@ -198,7 +202,7 @@ function ModelConfig() {
       {/* 模型列表 */}
       {models.length === 0 && !showForm ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🤖</div>
+          <div className="empty-state-icon"><ChipIcon size={40} /></div>
           <div className="empty-state-text">尚未配置任何模型</div>
           <div className="empty-state-hint">点击右上角「添加模型」开始配置</div>
         </div>
@@ -208,7 +212,7 @@ function ModelConfig() {
             <div key={model.id} className={`model-card ${model.is_default ? 'is-default' : ''}`}>
               <div className="model-card-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>🤖</span>
+                  <span style={{ display: 'flex', color: 'var(--icon-color-inactive)' }}><ChipIcon size={20} /></span>
                   <span className="model-card-name">{model.name}</span>
                   {model.is_default && <span className="default-badge">默认</span>}
                 </div>
@@ -250,7 +254,9 @@ function ModelConfig() {
 
       {/* 使用说明 */}
       <div className="card hint-card" style={{ marginTop: 20 }}>
-        <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 14 }}>💡 使用说明</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 10, fontSize: 14 }}>
+          <InfoIcon size={15} /> 使用说明
+        </div>
         <div style={{ fontSize: 13, lineHeight: 2, color: 'var(--text-2)' }}>
           <p>1. 点击「添加模型」配置一个或多个大模型</p>
           <p>2. 在「智能问答」页面顶部选择要使用的模型再提问</p>

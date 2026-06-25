@@ -1,19 +1,23 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import axios from 'axios'
+import {
+  BookIcon, CrystalIcon, GemIcon, FileTextIcon, XCircleIcon, CheckCircleIcon,
+  LoaderIcon, UploadIcon, FolderIcon,
+} from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
 const KB_GROUPS = [
-  { id: 'general', label: '通用库',   icon: '📚', color: 'general' },
-  { id: 'sic',     label: '碳化硅库', icon: '💎', color: 'sic'     },
-  { id: 'diamond', label: '金刚石库', icon: '✨', color: 'diamond'  },
+  { id: 'general', label: '通用库',   Icon: BookIcon,    color: 'general' },
+  { id: 'sic',     label: '碳化硅库', Icon: CrystalIcon, color: 'sic'     },
+  { id: 'diamond', label: '金刚石库', Icon: GemIcon,     color: 'diamond'  },
 ]
 
 function KbBadge({ group }) {
   const cfg = KB_GROUPS.find(g => g.id === group) || KB_GROUPS[0]
   return (
     <span className={`kb-badge kb-badge-${cfg.color}`}>
-      {cfg.icon} {cfg.label}
+      <cfg.Icon size={12} /> {cfg.label}
     </span>
   )
 }
@@ -82,16 +86,14 @@ function FileUpload() {
     } catch { showAlert('error', '删除失败') }
   }
 
-  const getDocIcon = (name) => name.toLowerCase().endsWith('.pdf') ? '📕' : '📘'
-
   return (
     <div>
-      <h2 className="section-title">📄 文档管理</h2>
+      <h2 className="section-title"><FileTextIcon size={20} /> 文档管理</h2>
       <p className="section-subtitle">上传 PDF 或 Word 文档，系统自动分块建立专家知识库</p>
 
       {alert && (
         <div className={`alert alert-${alert.type === 'error' ? 'error' : 'success'}`}>
-          <span>{alert.type === 'error' ? '❌' : '✅'}</span>
+          {alert.type === 'error' ? <XCircleIcon size={16} /> : <CheckCircleIcon size={16} />}
           <span>{alert.text}</span>
         </div>
       )}
@@ -105,8 +107,9 @@ function FileUpload() {
               key={g.id}
               className={`tag ${selectedGroup === g.id ? 'tag-cat-selected' : ''}`}
               onClick={() => setSelectedGroup(g.id)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
             >
-              {g.icon} {g.label}
+              <g.Icon size={13} /> {g.label}
             </button>
           ))}
         </div>
@@ -121,7 +124,9 @@ function FileUpload() {
         onDrop={!uploading ? handleDrop : undefined}
       >
         <input ref={fileInputRef} type="file" accept=".pdf,.docx" onChange={handleFileSelect} style={{ display: 'none' }} />
-        <div className="upload-icon">{uploading ? '⏳' : '📁'}</div>
+        <div className={`upload-icon ${uploading ? 'spin' : ''}`}>
+          {uploading ? <LoaderIcon size={36} /> : <UploadIcon size={36} />}
+        </div>
         <div className="upload-text">
           {uploading
             ? '正在解析文档并入库，请稍候...'
@@ -140,7 +145,7 @@ function FileUpload() {
 
       {documents.length === 0 ? (
         <div className="empty-state" style={{ padding: '32px 24px' }}>
-          <div className="empty-state-icon">📂</div>
+          <div className="empty-state-icon"><FolderIcon size={40} /></div>
           <div className="empty-state-text">知识库为空</div>
           <div className="empty-state-hint">上传文档后将显示在这里</div>
         </div>
@@ -149,7 +154,7 @@ function FileUpload() {
           {documents.map(doc => (
             <div key={doc.doc_id} className="doc-item">
               <div className="doc-info">
-                <span className="doc-icon">{getDocIcon(doc.filename)}</span>
+                <span className="doc-icon"><FileTextIcon size={22} /></span>
                 <div style={{ minWidth: 0 }}>
                   <div className="doc-name" title={doc.filename}>{doc.filename}</div>
                   <div className="doc-meta" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>

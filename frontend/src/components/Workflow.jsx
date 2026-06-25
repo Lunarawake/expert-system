@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { WorkflowIcon, UploadIcon, BellIcon, ThumbsUpIcon, XCircleIcon, CheckCircleIcon, InfoIcon } from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
+
+const WF_ICONS = {
+  doc_auto_import: UploadIcon,
+  kb_update_reminder: BellIcon,
+  answer_feedback: ThumbsUpIcon,
+}
 
 function formatDate(iso) {
   if (!iso) return null
@@ -46,11 +53,12 @@ function WorkflowCard({ wf, onToggle, toggling }) {
   const statusLabel = wf.enabled
     ? STATUS_MAP[wf.id]?.on || '运行中'
     : STATUS_MAP[wf.id]?.off || '已停止'
+  const WfIcon = WF_ICONS[wf.id] || WorkflowIcon
 
   return (
     <div className={`wf-card ${wf.enabled ? 'wf-card-active' : ''}`}>
       <div className="wf-card-left">
-        <div className="wf-icon">{wf.icon}</div>
+        <div className="wf-icon"><WfIcon size={20} /></div>
         <div className="wf-info">
           <div className="wf-title">
             {wf.name}
@@ -119,20 +127,22 @@ function Workflow() {
 
   return (
     <div className="wf-page">
-      <h2 className="section-title">🔄 工作流管理</h2>
+      <h2 className="section-title"><WorkflowIcon size={20} /> 工作流管理</h2>
       <p className="section-subtitle">管理系统内置工作流，开启后自动执行对应功能</p>
 
       {toast && (
         <div className={`alert alert-${toast.type === 'error' ? 'error' : 'success'}`}
           style={{ marginBottom: 16 }}>
-          <span>{toast.type === 'error' ? '❌' : '✅'}</span>
+          {toast.type === 'error' ? <XCircleIcon size={16} /> : <CheckCircleIcon size={16} />}
           <span>{toast.msg}</span>
         </div>
       )}
 
       {loading ? (
         <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-3)' }}>
-          <div style={{ fontSize: 32, marginBottom: 10 }}>🔄</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, opacity: 0.5 }}>
+            <WorkflowIcon size={32} />
+          </div>
           <div>加载中…</div>
         </div>
       ) : (
@@ -150,8 +160,8 @@ function Workflow() {
 
       {/* 说明 */}
       <div className="card" style={{ marginTop: 24, padding: '16px 20px' }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>
-          📌 使用说明
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>
+          <InfoIcon size={15} /> 使用说明
         </div>
         <ul style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 2, paddingLeft: 18, margin: 0 }}>
           <li><strong>触发式</strong>工作流在特定动作发生时自动执行，如文档上传</li>
