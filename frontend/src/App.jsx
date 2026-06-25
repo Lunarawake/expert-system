@@ -6,6 +6,7 @@ import ModelConfig from './components/ModelConfig'
 import RightPanel from './components/RightPanel'
 import Stats from './components/Stats'
 import Workflow from './components/Workflow'
+import { ChipIcon } from './components/Icons'
 
 const PAGE_TITLES = {
   chat:     '智能问答',
@@ -73,7 +74,7 @@ function App() {
                     onClick={() => setActiveNav('config')}
                     title="点击前往模型配置"
                   >
-                    <span>🤖</span>
+                    <ChipIcon size={14} />
                     <span className="model-badge-label">当前模型：</span>
                     <span className="model-badge-name">{modelName}</span>
                     <span className="model-badge-arrow">▾</span>

@@ -1,12 +1,13 @@
 // 侧边栏导航组件
+import { ChatIcon, FolderIcon, SlidersIcon, WorkflowIcon, ChartIcon } from './Icons'
 
 const NAV_ITEMS = [
-  { id: 'chat',     label: '智能问答',   icon: '💬' },
-  { id: 'docs',     label: '文档管理',   icon: '📄' },
-  { id: 'config',   label: '模型配置',   icon: '⚙️' },
+  { id: 'chat',     label: '智能问答',   Icon: ChatIcon },
+  { id: 'docs',     label: '文档管理',   Icon: FolderIcon },
+  { id: 'config',   label: '模型配置',   Icon: SlidersIcon },
   { id: null, divider: true },
-  { id: 'workflow', label: '工作流管理', icon: '🔄' },
-  { id: 'stats',    label: '使用统计',   icon: '📊' },
+  { id: 'workflow', label: '工作流管理', Icon: WorkflowIcon },
+  { id: 'stats',    label: '使用统计',   Icon: ChartIcon },
 ]
 
 function Sidebar({ activeNav, onNavChange }) {
@@ -30,7 +31,7 @@ function Sidebar({ activeNav, onNavChange }) {
               onClick={() => onNavChange(item.id)}
               title={item.label}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon"><item.Icon size={18} /></span>
               <span>{item.label}</span>
             </button>
           )

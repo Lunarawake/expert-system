@@ -27,6 +27,10 @@
   --r: 12px;
   --r-sm: 8px;
   --r-lg: 16px;
+
+  /* 图标专用品牌色（公司 logo 配色）：选中态紫色 / 未选中态深蓝 */
+  --icon-color-active: #7b68c8;
+  --icon-color-inactive: #1e2460;
 }
 
 body {
@@ -203,7 +207,14 @@ body {
 .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
 .nav-item.disabled { opacity: 0.42; cursor: not-allowed; }
 
-.nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-icon {
+  width: 18px; height: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--icon-color-inactive);
+  transition: color 0.15s;
+}
+.nav-item.active .nav-icon { color: var(--icon-color-active); }
+.nav-item:hover:not(.active) .nav-icon { color: var(--primary); }
 
 .nav-tag {
   margin-left: auto;
@@ -649,7 +660,10 @@ body {
   white-space: nowrap; flex-shrink: 0;
 }
 .suggestion-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-.suggestion-chip-icon { font-size: 14px; flex-shrink: 0; }
+.suggestion-chip-dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  background: var(--icon-color-inactive); opacity: 0.5;
+}
 
 .suggestion-refresh {
   padding: 2px 6px; border: none; background: transparent;

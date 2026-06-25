@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import axios from 'axios'
+import { ChipIcon } from './Icons'
 
 const API = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -43,12 +44,12 @@ const PRODUCT_CATEGORIES = [
 ]
 
 const ALL_SUGGESTIONS = [
-  { icon: '🌡️', text: 'PCD热导率检测方法是什么？' },
-  { icon: '⚙️', text: 'Diamond-SiC烧结压力范围是多少？' },
-  { icon: '🔧', text: '六面顶压机如何调整顶锤？' },
-  { icon: '🔍', text: 'PCD气孔率验收标准是什么？' },
-  { icon: '🔥', text: '如何判断PCD石墨化温度？' },
-  { icon: '⚡', text: 'SiC热场相关工艺参数？' },
+  { text: 'PCD热导率检测方法是什么？' },
+  { text: 'Diamond-SiC烧结压力范围是多少？' },
+  { text: '六面顶压机如何调整顶锤？' },
+  { text: 'PCD气孔率验收标准是什么？' },
+  { text: '如何判断PCD石墨化温度？' },
+  { text: 'SiC热场相关工艺参数？' },
 ]
 
 function pickRandomSuggestions(list, count = 4) {
@@ -424,7 +425,8 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         ) : (
           <div ref={modelMenuRef} className="guide-bar-dropdown">
             <button className="model-dropdown" onClick={() => setShowModelMenu(v => !v)}>
-              <span>🤖 {currentModel?.name || '选择模型'}</span>
+              <ChipIcon size={14} />
+              <span>{currentModel?.name || '选择模型'}</span>
               {currentModel?.is_default && <span className="model-default-badge">默认</span>}
               <span className="model-dropdown-arrow">{showModelMenu ? '▴' : '▾'}</span>
             </button>
@@ -567,7 +569,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
           {suggestions.map((s, i) => (
             <button key={i} className="suggestion-chip"
               onClick={() => { setInput(s.text); textareaRef.current?.focus() }}>
-              <span className="suggestion-chip-icon">{s.icon}</span>
+              <span className="suggestion-chip-dot" />
               <span>{s.text}</span>
             </button>
           ))}
