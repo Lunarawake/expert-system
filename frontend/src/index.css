@@ -499,12 +499,12 @@ body {
   display: flex; align-items: center; gap: 2px;
 }
 
-/* 浮层：向下覆盖输入区/建议栏，不挤占对话消息区空间 */
+/* 浮层：向上弹出，避免被底部任务栏/输入区遮挡 */
 .category-overlay {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-lg); box-shadow: var(--shadow-md);
-  padding: 16px 18px; z-index: 100;
+  padding: 16px 18px; z-index: 9999;
   display: flex; flex-direction: column; gap: 12px;
   max-height: 50vh; overflow-y: auto;
 }
