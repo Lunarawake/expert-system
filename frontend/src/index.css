@@ -462,15 +462,55 @@ body {
   40%          { transform: scale(1);   opacity: 1;   }
 }
 
-/* ==================== 引导式提问面板 ==================== */
-.guide-panel {
-  padding: 10px 20px 8px;
+/* ==================== 折叠式选择栏 ==================== */
+.guide-bar {
+  padding: 8px 20px;
   border-top: 1px solid var(--border);
   background: var(--surface);
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+.guide-bar-dropdown { position: relative; flex-shrink: 0; }
+.guide-bar-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+
+/* 产品类别折叠触发器 */
+.category-trigger-wrap { position: relative; flex: 1; min-width: 0; }
+.category-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; gap: 8px;
+  padding: 5px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  cursor: pointer; font-size: 13px; color: var(--text-2);
+  transition: border-color 0.15s, background 0.15s;
+}
+.category-trigger:hover { border-color: var(--primary); }
+.category-trigger.has-selection {
+  border-color: var(--primary); background: var(--primary-lighter);
+  color: var(--primary); font-weight: 600;
+}
+.category-trigger-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: left; flex: 1; min-width: 0;
+}
+.category-trigger-toggle {
+  font-size: 11px; color: var(--text-3); flex-shrink: 0;
+  display: flex; align-items: center; gap: 2px;
+}
+
+/* 浮层：向下覆盖输入区/建议栏，不挤占对话消息区空间 */
+.category-overlay {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+  padding: 16px 18px; z-index: 100;
+  display: flex; flex-direction: column; gap: 12px;
+  max-height: 50vh; overflow-y: auto;
+}
+.category-overlay-footer {
+  display: flex; justify-content: flex-end;
+  padding-top: 8px; border-top: 1px solid var(--border);
 }
 
 /* 模型下拉选择器 */
@@ -532,24 +572,30 @@ body {
 .tag-cat-selected:hover { background: var(--primary-hover); color: #fff; }
 .tag-dir-selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
 
-.guide-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding-top: 2px; }
-.guide-preview-badge {
-  display: inline-block; padding: 2px 9px; border-radius: 12px;
-  font-size: 11px; font-weight: 600;
-  background: var(--primary); color: #fff;
-}
-.guide-preview-badge.dir { background: var(--primary-light); color: var(--primary); }
-
 /* ==================== 输入区 ==================== */
 .chat-input-area {
-  padding: 12px 20px 14px;
+  padding: 10px 20px 12px;
   border-top: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
 }
 .chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+
+.textarea-wrap { position: relative; flex: 1; min-width: 0; }
+.input-corner-tags {
+  position: absolute; top: 6px; left: 14px; right: 40px; z-index: 1;
+  display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden;
+  pointer-events: none;
+}
+.input-tag {
+  display: inline-block; flex-shrink: 0; white-space: nowrap;
+  font-size: 10px; font-weight: 600; padding: 1px 8px; border-radius: 8px;
+  background: var(--primary-light); color: var(--primary);
+}
+.input-tag.dir { background: var(--bg); color: var(--text-3); border: 1px solid var(--border); font-weight: 500; }
+
 .chat-textarea {
-  flex: 1; padding: 11px 16px;
+  width: 100%; padding: 11px 16px;
   border: 1px solid var(--border); border-radius: 22px;
   font-size: 14px; resize: none; outline: none;
   min-height: 44px; max-height: 130px;
@@ -557,6 +603,7 @@ body {
   transition: border-color 0.15s, box-shadow 0.15s;
   background: var(--bg); color: var(--text);
 }
+.chat-textarea.has-corner-tags { padding-top: 26px; }
 .chat-textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(108,71,255,0.1); }
 .chat-textarea:disabled { cursor: not-allowed; opacity: 0.6; }
 
@@ -570,29 +617,36 @@ body {
 .send-btn:hover:not(:disabled) { background: var(--primary-hover); transform: scale(1.05); }
 .send-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-/* ==================== 建议问题栏 ==================== */
+/* ==================== 建议问题栏：单行横向滚动，节省垂直空间 ==================== */
 .suggestion-bar {
-  padding: 8px 16px 12px;
+  padding: 6px 16px 10px;
   border-top: 1px solid var(--border);
   background: var(--surface);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.suggestion-bar-header {
-  display: flex; align-items: center; justify-content: flex-end;
-  margin-bottom: 6px;
-}
+.suggestion-bar-header { flex-shrink: 0; margin-bottom: 0; }
 .suggestion-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: nowrap;
   gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex: 1;
+  min-width: 0;
 }
+.suggestion-grid::-webkit-scrollbar { height: 4px; }
+.suggestion-grid::-webkit-scrollbar-thumb { background: #d0d7de; border-radius: 2px; }
 .suggestion-chip {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 12px; border-radius: var(--r-sm);
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg); color: var(--text-2);
   font-size: 12px; cursor: pointer; text-align: left;
   line-height: 1.4; transition: all 0.15s;
+  white-space: nowrap; flex-shrink: 0;
 }
 .suggestion-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
 .suggestion-chip-icon { font-size: 14px; flex-shrink: 0; }

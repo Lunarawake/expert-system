@@ -183,14 +183,16 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const [selectedKbGroup, setSelectedKbGroup] = useState('all')
   const [showKbMenu, setShowKbMenu] = useState(false)
 
-  // 引导选择
+  // 引导选择（折叠式：默认收起，仅展示已选摘要）
   const [selectedCatId, setSelectedCatId] = useState(null)
   const [selectedDirs, setSelectedDirs] = useState([])
+  const [showCatMenu, setShowCatMenu] = useState(false)
 
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
   const modelMenuRef = useRef(null)
   const kbMenuRef = useRef(null)
+  const catMenuRef = useRef(null)
 
   const currentCat = PRODUCT_CATEGORIES.find(c => c.id === selectedCatId)
   const currentModel = models.find(m => m.id === selectedModelId)
@@ -260,6 +262,18 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [showKbMenu])
 
+  // 点击外部关闭产品类别浮层
+  useEffect(() => {
+    if (!showCatMenu) return
+    const handler = (e) => {
+      if (catMenuRef.current && !catMenuRef.current.contains(e.target)) {
+        setShowCatMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showCatMenu])
+
   const autoResize = () => {
     const el = textareaRef.current
     if (!el) return
@@ -269,7 +283,11 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
   const handleCatToggle = (catId) => {
     if (selectedCatId === catId) { setSelectedCatId(null); setSelectedDirs([]) }
-    else { setSelectedCatId(catId); setSelectedDirs(catId === 'all' ? ['全部'] : []) }
+    else {
+      setSelectedCatId(catId)
+      setSelectedDirs(catId === 'all' ? ['全部'] : [])
+      if (catId === 'all') setShowCatMenu(false) // 全部类别无需再选方向，直接收起
+    }
   }
 
   const handleDirToggle = (dir) => {
@@ -334,6 +352,14 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     }
   }
 
+  const catSummaryText = !selectedCatId
+    ? '请选择产品类别'
+    : selectedCatId === 'all'
+    ? '全部'
+    : selectedDirs.length > 0
+    ? `${currentCat.name} · ${selectedDirs.join('、')}`
+    : currentCat.name
+
   const textareaPlaceholder = !selectedModelId
     ? '请先选择要使用的模型...'
     : !selectedCatId
@@ -388,122 +414,142 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* 引导式选择面板 */}
-      <div className="guide-panel">
-        {/* 第零级：选择模型 */}
-        <div className="guide-row">
-          <span className="guide-row-label">使用模型</span>
-          {models.length === 0 ? (
-            <span style={{ fontSize: 12, color: 'var(--error)' }}>
-              ⚠️ 尚未配置模型，请前往「模型配置」页面添加
-            </span>
-          ) : (
-            <div ref={modelMenuRef} style={{ position: 'relative', display: 'inline-block' }}>
-              <button className="model-dropdown" onClick={() => setShowModelMenu(v => !v)}>
-                <span>🤖 {currentModel?.name || '选择模型'}</span>
-                {currentModel?.is_default && <span className="model-default-badge">默认</span>}
-                <span className="model-dropdown-arrow">{showModelMenu ? '▴' : '▾'}</span>
-              </button>
-              {showModelMenu && (
-                <div className="model-dropdown-menu">
-                  {models.map(m => (
-                    <button
-                      key={m.id}
-                      className={`model-menu-item ${selectedModelId === m.id ? 'active' : ''}`}
-                      onClick={() => { handleModelSelect(m.id); setShowModelMenu(false) }}
-                    >
-                      <span>{m.name}</span>
-                      {m.is_default && <span className="model-default-badge">默认</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* 知识库分组 */}
-        <div className="guide-row">
-          <span className="guide-row-label">知识库</span>
-          <div ref={kbMenuRef} style={{ position: 'relative', display: 'inline-block' }}>
-            <button className="model-dropdown" onClick={() => setShowKbMenu(v => !v)}>
-              <span>{KB_GROUPS.find(g => g.id === selectedKbGroup)?.icon} {KB_GROUPS.find(g => g.id === selectedKbGroup)?.label}</span>
-              <span className="model-dropdown-arrow">{showKbMenu ? '▴' : '▾'}</span>
+      {/* 折叠式选择栏：默认收起，只占一行 */}
+      <div className="guide-bar">
+        {/* 模型选择 */}
+        {models.length === 0 ? (
+          <span style={{ fontSize: 12, color: 'var(--error)' }}>
+            ⚠️ 尚未配置模型，请前往「模型配置」页面添加
+          </span>
+        ) : (
+          <div ref={modelMenuRef} className="guide-bar-dropdown">
+            <button className="model-dropdown" onClick={() => setShowModelMenu(v => !v)}>
+              <span>🤖 {currentModel?.name || '选择模型'}</span>
+              {currentModel?.is_default && <span className="model-default-badge">默认</span>}
+              <span className="model-dropdown-arrow">{showModelMenu ? '▴' : '▾'}</span>
             </button>
-            {showKbMenu && (
+            {showModelMenu && (
               <div className="model-dropdown-menu">
-                {KB_GROUPS.map(g => (
+                {models.map(m => (
                   <button
-                    key={g.id}
-                    className={`model-menu-item ${selectedKbGroup === g.id ? 'active' : ''}`}
-                    onClick={() => { setSelectedKbGroup(g.id); setShowKbMenu(false) }}
+                    key={m.id}
+                    className={`model-menu-item ${selectedModelId === m.id ? 'active' : ''}`}
+                    onClick={() => { handleModelSelect(m.id); setShowModelMenu(false) }}
                   >
-                    <span>{g.icon} {g.label}</span>
-                    {g.id === 'all' && <span style={{ fontSize: 10, color: 'var(--text-3)' }}>默认</span>}
+                    <span>{m.name}</span>
+                    {m.is_default && <span className="model-default-badge">默认</span>}
                   </button>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        )}
 
-        {/* 第一级：产品类别 */}
-        <div className="guide-row">
-          <span className="guide-row-label">产品类别</span>
-          <div className="tag-group">
-            {PRODUCT_CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                className={`tag ${selectedCatId === cat.id ? 'tag-cat-selected' : ''}`}
-                onClick={() => handleCatToggle(cat.id)}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
+        <div className="guide-bar-divider" />
 
-        {/* 第二级：问题方向（联动，全部类别不需要选方向） */}
-        {currentCat && selectedCatId !== 'all' && (
-          <div className="guide-row">
-            <span className="guide-row-label">问题方向</span>
-            <div className="tag-group">
-              {currentCat.subCategories.map(dir => (
+        {/* 知识库分组 */}
+        <div ref={kbMenuRef} className="guide-bar-dropdown">
+          <button className="model-dropdown" onClick={() => setShowKbMenu(v => !v)}>
+            <span>{KB_GROUPS.find(g => g.id === selectedKbGroup)?.icon} {KB_GROUPS.find(g => g.id === selectedKbGroup)?.label}</span>
+            <span className="model-dropdown-arrow">{showKbMenu ? '▴' : '▾'}</span>
+          </button>
+          {showKbMenu && (
+            <div className="model-dropdown-menu">
+              {KB_GROUPS.map(g => (
                 <button
-                  key={dir}
-                  className={`tag ${selectedDirs.includes(dir) ? 'tag-dir-selected' : ''}`}
-                  onClick={() => handleDirToggle(dir)}
+                  key={g.id}
+                  className={`model-menu-item ${selectedKbGroup === g.id ? 'active' : ''}`}
+                  onClick={() => { setSelectedKbGroup(g.id); setShowKbMenu(false) }}
                 >
-                  {dir}
+                  <span>{g.icon} {g.label}</span>
+                  {g.id === 'all' && <span style={{ fontSize: 10, color: 'var(--text-3)' }}>默认</span>}
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* 已选预览 */}
-        {selectedCatId && selectedCatId !== 'all' && selectedDirs.length > 0 && (
-          <div className="guide-preview">
-            {currentModel && <span className="guide-preview-badge" style={{ background: '#722ed1' }}>{currentModel.name}</span>}
-            <span className="guide-preview-badge">{currentCat.name}</span>
-            {selectedDirs.map(d => <span key={d} className="guide-preview-badge dir">{d}</span>)}
-          </div>
-        )}
+        <div className="guide-bar-divider" />
+
+        {/* 产品类别 + 问题方向：折叠为单个触发按钮，展开为浮层 */}
+        <div ref={catMenuRef} className="category-trigger-wrap">
+          <button
+            className={`category-trigger ${selectedCatId ? 'has-selection' : ''}`}
+            onClick={() => setShowCatMenu(v => !v)}
+          >
+            <span className="category-trigger-text">📂 {catSummaryText}</span>
+            <span className="category-trigger-toggle">切换 {showCatMenu ? '▴' : '▾'}</span>
+          </button>
+
+          {showCatMenu && (
+            <div className="category-overlay">
+              {/* 第一级：产品类别 */}
+              <div className="guide-row">
+                <span className="guide-row-label">产品类别</span>
+                <div className="tag-group">
+                  {PRODUCT_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`tag ${selectedCatId === cat.id ? 'tag-cat-selected' : ''}`}
+                      onClick={() => handleCatToggle(cat.id)}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 第二级：问题方向（联动，全部类别不需要选方向） */}
+              {currentCat && selectedCatId !== 'all' && (
+                <div className="guide-row">
+                  <span className="guide-row-label">问题方向</span>
+                  <div className="tag-group">
+                    {currentCat.subCategories.map(dir => (
+                      <button
+                        key={dir}
+                        className={`tag ${selectedDirs.includes(dir) ? 'tag-dir-selected' : ''}`}
+                        onClick={() => handleDirToggle(dir)}
+                      >
+                        {dir}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="category-overlay-footer">
+                <button className="btn btn-primary" style={{ fontSize: 12, padding: '5px 16px' }} onClick={() => setShowCatMenu(false)}>
+                  ✓ 完成
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 输入区 */}
+      {/* 输入区：已选类别/方向以小标签显示在输入框左上角，不单独占行 */}
       <div className="chat-input-area">
         <div className="chat-input-row">
-          <textarea
-            ref={textareaRef}
-            className="chat-textarea"
-            placeholder={textareaPlaceholder}
-            value={input}
-            onChange={e => { setInput(e.target.value); autoResize() }}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            disabled={loading || !selectedModelId || !selectedCatId || selectedDirs.length === 0}
-          />
+          <div className="textarea-wrap">
+            {selectedCatId && (
+              <div className="input-corner-tags">
+                <span className="input-tag">{currentCat.name}</span>
+                {selectedCatId !== 'all' && selectedDirs.map(d => (
+                  <span key={d} className="input-tag dir">{d}</span>
+                ))}
+              </div>
+            )}
+            <textarea
+              ref={textareaRef}
+              className={`chat-textarea ${selectedCatId ? 'has-corner-tags' : ''}`}
+              placeholder={textareaPlaceholder}
+              value={input}
+              onChange={e => { setInput(e.target.value); autoResize() }}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              disabled={loading || !selectedModelId || !selectedCatId || selectedDirs.length === 0}
+            />
+          </div>
           <button
             className="send-btn"
             onClick={sendMessage}
@@ -515,13 +561,8 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         </div>
       </div>
 
-      {/* 快捷问题栏 */}
+      {/* 快捷问题栏：单行横向滚动 */}
       <div className="suggestion-bar">
-        <div className="suggestion-bar-header">
-          <button className="suggestion-refresh" onClick={() => setSuggestions(pickRandomSuggestions(ALL_SUGGESTIONS))}>
-            ↻ 换一换
-          </button>
-        </div>
         <div className="suggestion-grid">
           {suggestions.map((s, i) => (
             <button key={i} className="suggestion-chip"
@@ -530,6 +571,11 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
               <span>{s.text}</span>
             </button>
           ))}
+        </div>
+        <div className="suggestion-bar-header">
+          <button className="suggestion-refresh" onClick={() => setSuggestions(pickRandomSuggestions(ALL_SUGGESTIONS))}>
+            ↻ 换一换
+          </button>
         </div>
       </div>
     </div>
