@@ -24,6 +24,7 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
   const [sessions, setSessions] = useState([])
   const [uploading, setUploading] = useState(false)
   const [uploadMsg, setUploadMsg] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => { loadDocs() }, [])
@@ -43,8 +44,14 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
     } catch {}
   }
 
-  const handleDeleteSession = async (e, sessionId) => {
+  const handleDeleteSession = (e, sessionId) => {
     e.stopPropagation()
+    setConfirmDeleteId(sessionId)
+  }
+
+  const confirmDelete = async () => {
+    const sessionId = confirmDeleteId
+    setConfirmDeleteId(null)
     try {
       await axios.delete(`${API}/sessions/${sessionId}`)
       setSessions(prev => prev.filter(s => s.session_id !== sessionId))
@@ -201,6 +208,20 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
           </div>
         )}
       </div>
+
+      {/* 删除确认弹窗 */}
+      {confirmDeleteId && (
+        <div className="modal-overlay" onClick={() => setConfirmDeleteId(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">确认删除</div>
+            <div className="modal-content">确定要删除这条对话记录吗？删除后无法恢复。</div>
+            <div className="modal-actions">
+              <button className="btn btn-ghost" onClick={() => setConfirmDeleteId(null)}>取消</button>
+              <button className="btn btn-danger" onClick={confirmDelete}>确认删除</button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }
