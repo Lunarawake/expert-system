@@ -14,43 +14,51 @@ const KB_GROUPS = [
 ]
 
 // ==================== 引导式提问配置 ====================
-const GUIDE_CONFIG = [
+const PRODUCT_CATEGORIES = [
   {
     id: 'all',
-    label: '全部',
-    directions: ['全部'],
+    name: '全部',
+    subCategories: [],
+  },
+  {
+    id: 'pcd',
+    name: '聚晶金刚石（PCD）',
+    subCategories: ['内部缺陷检测', '石墨化温度', '热导率', '密度与致密性', '电学性能', '烧结工艺', '其他'],
   },
   {
     id: 'sic',
-    label: '碳化硅产品',
-    directions: ['热场相关', '压力相关', '功率相关', '工艺参数', '缺陷分析', '其他'],
+    name: '碳化硅（SiC）',
+    subCategories: ['热场相关', '压力相关', '功率器件', '工艺参数', '缺陷分析', '其他'],
   },
   {
-    id: 'diamond',
-    label: '金刚石产品',
-    directions: ['热场相关', '压力相关', '合成工艺', '品质检测', '其他'],
+    id: 'diamond_sic',
+    name: '金刚石-SiC复合材料',
+    subCategories: ['高温高压烧结工艺', '工艺参数优化', '性能指标检测', '设备操作（六面顶压机）', '原料配比', '其他'],
   },
   {
-    id: 'other',
-    label: '其他产品',
-    directions: ['其他'],
+    id: 'detection',
+    name: '检测与质量管控',
+    subCategories: ['原材料检测', '成品性能检测', '数据规律分析', '质量标准', '其他'],
   },
 ]
 
-const SUGGESTION_SETS = [
-  [
-    { icon: '✏️', text: '碳化硅热场材料主要性能指标？' },
-    { icon: '🔬', text: '金刚石合成工艺关键参数是什么？' },
-    { icon: '📋', text: '压力系统维护注意事项？' },
-    { icon: '🔍', text: '碳化硅缺陷分析检测方法？' },
-  ],
-  [
-    { icon: '⚡', text: '功率器件对碳化硅材料的要求？' },
-    { icon: '💎', text: '金刚石品质检测的评价标准？' },
-    { icon: '📊', text: '工艺参数对产品性能的影响？' },
-    { icon: '🔧', text: '如何提升合成工艺的稳定性？' },
-  ],
+const ALL_SUGGESTIONS = [
+  { icon: '🌡️', text: 'PCD热导率检测方法是什么？' },
+  { icon: '⚙️', text: 'Diamond-SiC烧结压力范围是多少？' },
+  { icon: '🔧', text: '六面顶压机如何调整顶锤？' },
+  { icon: '🔍', text: 'PCD气孔率验收标准是什么？' },
+  { icon: '🔥', text: '如何判断PCD石墨化温度？' },
+  { icon: '⚡', text: 'SiC热场相关工艺参数？' },
 ]
+
+function pickRandomSuggestions(list, count = 4) {
+  const arr = [...list]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr.slice(0, count)
+}
 
 // ==================== 工具函数 ====================
 
@@ -78,7 +86,7 @@ function WelcomeBanner() {
         <h2 className="welcome-title">您好，我是数字专家</h2>
         <p className="welcome-subtitle">
           基于知识库和大模型的智能问答助手<br />
-          专注碳化硅、金刚石等超硬材料领域，为您提供专业、准确的解答
+          专注碳化硅、金刚石、Diamond-SiC复合材料领域，为您提供专业、准确的解答
         </p>
       </div>
       <div className="welcome-avatar-wrap">
@@ -163,7 +171,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [copiedIdx, setCopiedIdx] = useState(null)
-  const [suggestionPage, setSuggestionPage] = useState(0)
+  const [suggestions, setSuggestions] = useState(() => pickRandomSuggestions(ALL_SUGGESTIONS))
   const [ratedMsgs, setRatedMsgs] = useState({}) // { msgIdx: 'up'|'down' }
 
   // 多模型选择
@@ -184,10 +192,9 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const modelMenuRef = useRef(null)
   const kbMenuRef = useRef(null)
 
-  const currentCat = GUIDE_CONFIG.find(c => c.id === selectedCatId)
+  const currentCat = PRODUCT_CATEGORIES.find(c => c.id === selectedCatId)
   const currentModel = models.find(m => m.id === selectedModelId)
   const canSend = !loading && !!selectedModelId && !!selectedCatId && selectedDirs.length > 0 && !!input.trim()
-  const suggestions = SUGGESTION_SETS[suggestionPage % SUGGESTION_SETS.length]
 
   // 加载模型列表（只需加载一次）
   useEffect(() => {
@@ -277,7 +284,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
 
   const sendMessage = useCallback(async () => {
     if (!canSend) return
-    const finalMsg = buildFinalMessage(currentCat.label, selectedDirs, input)
+    const finalMsg = buildFinalMessage(currentCat.name, selectedDirs, input)
     setInput('')
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setMessages(prev => [...prev, { role: 'user', content: finalMsg }])
@@ -444,13 +451,13 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         <div className="guide-row">
           <span className="guide-row-label">产品类别</span>
           <div className="tag-group">
-            {GUIDE_CONFIG.map(cat => (
+            {PRODUCT_CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 className={`tag ${selectedCatId === cat.id ? 'tag-cat-selected' : ''}`}
                 onClick={() => handleCatToggle(cat.id)}
               >
-                {cat.label}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -461,7 +468,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
           <div className="guide-row">
             <span className="guide-row-label">问题方向</span>
             <div className="tag-group">
-              {currentCat.directions.map(dir => (
+              {currentCat.subCategories.map(dir => (
                 <button
                   key={dir}
                   className={`tag ${selectedDirs.includes(dir) ? 'tag-dir-selected' : ''}`}
@@ -478,7 +485,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
         {selectedCatId && selectedCatId !== 'all' && selectedDirs.length > 0 && (
           <div className="guide-preview">
             {currentModel && <span className="guide-preview-badge" style={{ background: '#722ed1' }}>{currentModel.name}</span>}
-            <span className="guide-preview-badge">{currentCat.label}</span>
+            <span className="guide-preview-badge">{currentCat.name}</span>
             {selectedDirs.map(d => <span key={d} className="guide-preview-badge dir">{d}</span>)}
           </div>
         )}
@@ -511,7 +518,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
       {/* 快捷问题栏 */}
       <div className="suggestion-bar">
         <div className="suggestion-bar-header">
-          <button className="suggestion-refresh" onClick={() => setSuggestionPage(p => p + 1)}>
+          <button className="suggestion-refresh" onClick={() => setSuggestions(pickRandomSuggestions(ALL_SUGGESTIONS))}>
             ↻ 换一换
           </button>
         </div>
