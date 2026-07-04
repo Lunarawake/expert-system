@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { CheckCircleIcon, XCircleIcon, LoaderIcon, UploadIcon, FileTextIcon, ChatIcon, XIcon } from './Icons'
 
-const API = import.meta.env.VITE_API_BASE_URL || '/api'
+const API = ''
 
 function formatTime(isoStr) {
   if (!isoStr) return ''

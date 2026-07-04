@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { WorkflowIcon, UploadIcon, BellIcon, ThumbsUpIcon, XCircleIcon, CheckCircleIcon, InfoIcon } from './Icons'
 
-const API = import.meta.env.VITE_API_BASE_URL || '/api'
+const API = ''
 
 const WF_ICONS = {
   doc_auto_import: UploadIcon,

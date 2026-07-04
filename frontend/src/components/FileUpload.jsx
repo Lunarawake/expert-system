@@ -5,7 +5,7 @@ import {
   LoaderIcon, UploadIcon, FolderIcon,
 } from './Icons'
 
-const API = import.meta.env.VITE_API_BASE_URL || '/api'
+const API = ''
 
 const KB_GROUPS = [
   { id: 'general', label: '通用库',   Icon: BookIcon,    color: 'general' },

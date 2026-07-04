@@ -5,7 +5,7 @@ import {
   RefreshIcon, ClockIcon, SearchIcon, TrendingUpIcon,
 } from './Icons'
 
-const API = import.meta.env.VITE_API_BASE_URL || '/api'
+const API = ''
 
 const KB_LABELS = { all: '全部', general: '通用库', sic: '碳化硅库', diamond: '金刚石库' }
 

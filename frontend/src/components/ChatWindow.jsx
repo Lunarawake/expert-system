@@ -8,7 +8,7 @@ import {
   TagIcon, CheckIcon, SendIcon, RefreshIcon, ChatIcon,
 } from './Icons'
 
-const API = import.meta.env.VITE_API_BASE_URL || '/api'
+const API = ''
 
 // ==================== 知识库分组配置 ====================
 const KB_GROUPS = [
