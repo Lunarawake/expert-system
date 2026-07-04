@@ -16,10 +16,21 @@ const PAGE_TITLES = {
   workflow: '工作流管理',
 }
 
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
 function getOrCreateSessionId() {
   const stored = localStorage.getItem('expert_session_id')
   if (stored) return stored
-  const id = crypto.randomUUID()
+  const id = generateUUID()
   localStorage.setItem('expert_session_id', id)
   return id
 }
@@ -33,7 +44,7 @@ function App() {
   const isChat = activeNav === 'chat'
 
   const handleNewChat = () => {
-    const newId = crypto.randomUUID()
+    const newId = generateUUID()
     localStorage.setItem('expert_session_id', newId)
     setCurrentSessionId(newId)
   }
