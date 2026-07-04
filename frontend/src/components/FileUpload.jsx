@@ -5,7 +5,7 @@ import {
   LoaderIcon, UploadIcon, FolderIcon,
 } from './Icons'
 
-const API = ''
+const API = '/api'
 
 const KB_GROUPS = [
   { id: 'general', label: '通用库',   Icon: BookIcon,    color: 'general' },

@@ -5,7 +5,7 @@ import {
   RefreshIcon, ClockIcon, SearchIcon, TrendingUpIcon,
 } from './Icons'
 
-const API = ''
+const API = '/api'
 
 const KB_LABELS = { all: '全部', general: '通用库', sic: '碳化硅库', diamond: '金刚石库' }
 

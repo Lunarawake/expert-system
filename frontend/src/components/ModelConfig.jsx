@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { SlidersIcon, PlusIcon, XCircleIcon, CheckCircleIcon, EditIcon, XIcon, SaveIcon, ChipIcon, InfoIcon } from './Icons'
 
-const API = ''
+const API = '/api'
 
 // 常用模型快速预设
 const PRESETS = [

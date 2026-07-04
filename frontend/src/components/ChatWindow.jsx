@@ -8,7 +8,7 @@ import {
   TagIcon, CheckIcon, SendIcon, RefreshIcon, ChatIcon,
 } from './Icons'
 
-const API = ''
+const API = '/api'
 
 // ==================== 知识库分组配置 ====================
 const KB_GROUPS = [
