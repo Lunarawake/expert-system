@@ -168,7 +168,7 @@ function AssistantMessage({ content, msgIdx, usedModel, copiedIdx, onCopy, rated
           </span>
         )}
         <div className="bubble ai-bubble">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{text}</ReactMarkdown>
         </div>
         {sources && sourcesExpanded && (
           <div className="source-list">
