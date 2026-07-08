@@ -399,6 +399,22 @@ body {
   border: 1px solid var(--border); padding: 7px 12px; text-align: left;
 }
 .ai-bubble th { background: var(--bg); font-weight: 600; }
+.ai-bubble tr:nth-child(even) td { background: var(--bg); }
+.ai-bubble h1 { font-size: 20px; }
+.ai-bubble h2 { font-size: 17px; }
+.ai-bubble h4,.ai-bubble h5,.ai-bubble h6 {
+  font-weight: 700; margin: 10px 0 4px; color: var(--text); font-size: 13px;
+}
+.ai-bubble em { font-style: italic; }
+.ai-bubble del,.ai-bubble s { text-decoration: line-through; opacity: 0.7; }
+.ai-bubble a { color: var(--primary); text-decoration: underline; }
+.ai-bubble a:hover { opacity: 0.8; }
+.ai-bubble blockquote {
+  border-left: 3px solid var(--primary); margin: 8px 0;
+  padding: 4px 12px; color: var(--text-2);
+  background: var(--primary-light); border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.ai-bubble blockquote p { margin-bottom: 0; }
 
 /* 来源徽章 */
 .source-badge {
