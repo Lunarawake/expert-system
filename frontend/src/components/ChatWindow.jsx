@@ -243,6 +243,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const modelMenuRef = useRef(null)
   const kbMenuRef = useRef(null)
   const catMenuRef = useRef(null)
+  const catOverlayRef = useRef(null)
 
   const currentCat = PRODUCT_CATEGORIES.find(c => c.id === selectedCatId)
   const currentModel = models.find(m => m.id === selectedModelId)
@@ -316,7 +317,10 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   useEffect(() => {
     if (!showCatMenu) return
     const handler = (e) => {
-      if (catMenuRef.current && !catMenuRef.current.contains(e.target)) {
+      if (
+        catMenuRef.current && !catMenuRef.current.contains(e.target) &&
+        (!catOverlayRef.current || !catOverlayRef.current.contains(e.target))
+      ) {
         setShowCatMenu(false)
       }
     }
@@ -427,7 +431,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
     : !selectedCatId
     ? '请先选择产品类别...'
     : selectedDirs.length === 0
-    ? '请选择问题方向后再输入...'
+    ? '可以先输入问题，选择问题方向后发送...'
     : '请详细描述您的具体问题（Enter 发送，Shift+Enter 换行）'
 
   return (
@@ -549,50 +553,6 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
             <span className="category-trigger-text"><TagIcon size={14} /> {catSummaryText}</span>
             <span className="category-trigger-toggle">切换 {showCatMenu ? '▴' : '▾'}</span>
           </button>
-
-          {showCatMenu && (
-            <div className="category-overlay">
-              {/* 第一级：产品类别 */}
-              <div className="guide-row">
-                <span className="guide-row-label">产品类别</span>
-                <div className="tag-group">
-                  {PRODUCT_CATEGORIES.map(cat => (
-                    <button
-                      key={cat.id}
-                      className={`tag ${selectedCatId === cat.id ? 'tag-cat-selected' : ''}`}
-                      onClick={() => handleCatToggle(cat.id)}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 第二级：问题方向（联动，全部类别不需要选方向） */}
-              {currentCat && selectedCatId !== 'all' && (
-                <div className="guide-row">
-                  <span className="guide-row-label">问题方向</span>
-                  <div className="tag-group">
-                    {currentCat.subCategories.map(dir => (
-                      <button
-                        key={dir}
-                        className={`tag ${selectedDirs.includes(dir) ? 'tag-dir-selected' : ''}`}
-                        onClick={() => handleDirToggle(dir)}
-                      >
-                        {dir}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="category-overlay-footer">
-                <button className="btn btn-primary" style={{ fontSize: 12, padding: '5px 16px' }} onClick={() => setShowCatMenu(false)}>
-                  <CheckIcon size={13} /> 完成
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* 提示词模板触发按钮（靠右） */}
@@ -608,6 +568,49 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
           </button>
         </div>
       </div>
+
+      {/* 产品类别/问题方向选择面板 */}
+      {showCatMenu && (
+        <div ref={catOverlayRef} className="category-overlay">
+          <div className="guide-row">
+            <span className="guide-row-label">产品类别</span>
+            <div className="tag-group">
+              {PRODUCT_CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  className={`tag ${selectedCatId === cat.id ? 'tag-cat-selected' : ''}`}
+                  onClick={() => handleCatToggle(cat.id)}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {currentCat && selectedCatId !== 'all' && (
+            <div className="guide-row">
+              <span className="guide-row-label">问题方向</span>
+              <div className="tag-group">
+                {currentCat.subCategories.map(dir => (
+                  <button
+                    key={dir}
+                    className={`tag ${selectedDirs.includes(dir) ? 'tag-dir-selected' : ''}`}
+                    onClick={() => handleDirToggle(dir)}
+                  >
+                    {dir}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="category-overlay-footer">
+            <button className="btn btn-primary" style={{ fontSize: 12, padding: '5px 16px' }} onClick={() => setShowCatMenu(false)}>
+              <CheckIcon size={13} /> 完成
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 提示词模板面板 */}
       {showTemplates && (
@@ -665,7 +668,7 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
               onChange={e => { setInput(e.target.value); autoResize() }}
               onKeyDown={handleKeyDown}
               rows={1}
-              disabled={loading || !selectedModelId || !selectedCatId || selectedDirs.length === 0}
+              disabled={loading || !selectedModelId || !selectedCatId}
             />
           </div>
           <button

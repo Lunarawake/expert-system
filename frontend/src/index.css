@@ -513,12 +513,14 @@ body {
 
 /* 浮层：向上弹出，避免被底部任务栏/输入区遮挡 */
 .category-overlay {
-  position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-lg); box-shadow: var(--shadow-md);
-  padding: 16px 18px; z-index: 9999;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  padding: 14px 18px;
   display: flex; flex-direction: column; gap: 12px;
   max-height: 50vh; overflow-y: auto;
+  animation: tpl-slide-in 0.15s ease-out;
 }
 .category-overlay-footer {
   display: flex; justify-content: flex-end;
@@ -575,7 +577,7 @@ body {
 .tag {
   padding: 4px 13px; border-radius: 16px; font-size: 12px;
   border: 1.5px solid var(--border); background: var(--surface);
-  color: var(--text-2); cursor: pointer;
+  color: var(--text-2); cursor: pointer; white-space: nowrap;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
   user-select: none; line-height: 1.6;
 }
