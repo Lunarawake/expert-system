@@ -22,7 +22,7 @@ function KbBadge({ group }) {
   )
 }
 
-function FileUpload() {
+function FileUpload({ isAdmin = false }) {
   const [documents, setDocuments] = useState([])
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -89,7 +89,7 @@ function FileUpload() {
   return (
     <div>
       <h2 className="section-title"><FileTextIcon size={20} /> 文档管理</h2>
-      <p className="section-subtitle">上传 PDF 或 Word 文档，系统自动分块建立专家知识库</p>
+      <p className="section-subtitle">{isAdmin ? '上传 PDF 或 Word 文档，系统自动分块建立专家知识库' : '查看已入库的知识库文档'}</p>
 
       {alert && (
         <div className={`alert alert-${alert.type === 'error' ? 'error' : 'success'}`}>
@@ -98,44 +98,46 @@ function FileUpload() {
         </div>
       )}
 
-      {/* 专家库选择 */}
-      <div className="kb-group-selector">
-        <span className="kb-group-label">归属专家库</span>
-        <div className="tag-group">
-          {KB_GROUPS.map(g => (
-            <button
-              key={g.id}
-              className={`tag ${selectedGroup === g.id ? 'tag-cat-selected' : ''}`}
-              onClick={() => setSelectedGroup(g.id)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
-            >
-              <g.Icon size={13} /> {g.label}
-            </button>
-          ))}
+      {isAdmin && (<>
+        {/* 专家库选择 */}
+        <div className="kb-group-selector">
+          <span className="kb-group-label">归属专家库</span>
+          <div className="tag-group">
+            {KB_GROUPS.map(g => (
+              <button
+                key={g.id}
+                className={`tag ${selectedGroup === g.id ? 'tag-cat-selected' : ''}`}
+                onClick={() => setSelectedGroup(g.id)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
+              >
+                <g.Icon size={13} /> {g.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* 上传区域 */}
-      <div
-        className={`upload-zone ${dragging ? 'dragging' : ''} ${uploading ? 'disabled' : ''}`}
-        onClick={() => !uploading && fileInputRef.current?.click()}
-        onDragOver={e => { e.preventDefault(); if (!uploading) setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={!uploading ? handleDrop : undefined}
-      >
-        <input ref={fileInputRef} type="file" accept=".pdf,.docx" onChange={handleFileSelect} style={{ display: 'none' }} />
-        <div className={`upload-icon ${uploading ? 'spin' : ''}`}>
-          {uploading ? <LoaderIcon size={36} /> : <UploadIcon size={36} />}
+        {/* 上传区域 */}
+        <div
+          className={`upload-zone ${dragging ? 'dragging' : ''} ${uploading ? 'disabled' : ''}`}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDragOver={e => { e.preventDefault(); if (!uploading) setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={!uploading ? handleDrop : undefined}
+        >
+          <input ref={fileInputRef} type="file" accept=".pdf,.docx" onChange={handleFileSelect} style={{ display: 'none' }} />
+          <div className={`upload-icon ${uploading ? 'spin' : ''}`}>
+            {uploading ? <LoaderIcon size={36} /> : <UploadIcon size={36} />}
+          </div>
+          <div className="upload-text">
+            {uploading
+              ? '正在解析文档并入库，请稍候...'
+              : <>点击选择文件，或将文件拖拽到此处<br /><small style={{ color: 'var(--text-3)', fontSize: 12 }}>将入库到：{KB_GROUPS.find(g => g.id === selectedGroup)?.label}</small></>
+            }
+          </div>
+          <div className="upload-hint">支持 PDF、Word(.docx) 格式，单次上传一个文件</div>
+          {uploading && <div className="progress-bar"><div className="progress-fill" /></div>}
         </div>
-        <div className="upload-text">
-          {uploading
-            ? '正在解析文档并入库，请稍候...'
-            : <>点击选择文件，或将文件拖拽到此处<br /><small style={{ color: 'var(--text-3)', fontSize: 12 }}>将入库到：{KB_GROUPS.find(g => g.id === selectedGroup)?.label}</small></>
-          }
-        </div>
-        <div className="upload-hint">支持 PDF、Word(.docx) 格式，单次上传一个文件</div>
-        {uploading && <div className="progress-bar"><div className="progress-fill" /></div>}
-      </div>
+      </>)}
 
       {/* 文档列表标题 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -163,13 +165,15 @@ function FileUpload() {
                   </div>
                 </div>
               </div>
-              <button
-                className="btn btn-danger"
-                style={{ fontSize: 13, padding: '6px 14px' }}
-                onClick={() => handleDelete(doc.doc_id, doc.filename)}
-              >
-                删除
-              </button>
+              {isAdmin && (
+                <button
+                  className="btn btn-danger"
+                  style={{ fontSize: 13, padding: '6px 14px' }}
+                  onClick={() => handleDelete(doc.doc_id, doc.filename)}
+                >
+                  删除
+                </button>
+              )}
             </div>
           ))}
         </div>
