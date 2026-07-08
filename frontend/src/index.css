@@ -1550,3 +1550,157 @@ code.model-card-value {
 }
 .um-self-tag { font-size: 11px; color: var(--primary); font-weight: 400; }
 .um-time { color: var(--text-3); font-size: 12px; white-space: nowrap; }
+
+/* ==================== 提示词模板 ==================== */
+
+/* guide-bar 里的触发按钮 */
+.tpl-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tpl-toggle-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-lighter); }
+.tpl-toggle-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* 模板面板整体 */
+.tpl-panel {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  animation: tpl-slide-in 0.15s ease-out;
+}
+@keyframes tpl-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 分类 Tab 行 */
+.tpl-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 16px 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.tpl-tabs::-webkit-scrollbar { display: none; }
+
+.tpl-tab {
+  padding: 5px 14px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tpl-tab:hover { color: var(--primary); }
+.tpl-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+/* 模板列表 */
+.tpl-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tpl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s;
+}
+.tpl-item:hover { background: var(--primary-lighter); }
+.tpl-item:hover .tpl-item-use { opacity: 1; }
+
+.tpl-item-num {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.tpl-item:hover .tpl-item-num { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.tpl-item-body { flex: 1; min-width: 0; }
+
+.tpl-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.tpl-item-preview {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tpl-item-use {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.12s;
+  padding-top: 2px;
+  white-space: nowrap;
+}
+
+/* 底部提示 */
+.tpl-hint {
+  padding: 6px 16px 8px;
+  font-size: 11px;
+  color: var(--text-3);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tpl-hint strong { color: var(--primary); }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .tpl-panel { max-height: 240px; }
+  .tpl-toggle-btn span:first-of-type { display: none; } /* 隐藏文字，只显示图标 */
+  .tpl-item-use { display: none; }
+}

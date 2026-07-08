@@ -56,6 +56,45 @@ const ALL_SUGGESTIONS = [
   { text: 'SiC热场相关工艺参数？' },
 ]
 
+// ==================== 提示词模板 ====================
+const PROMPT_TEMPLATES = [
+  {
+    id: 'sintering',
+    label: 'Diamond-SiC烧结工艺',
+    items: [
+      { title: '推荐烧结参数', text: '请根据目标热导率[填写]W/(m·K)，推荐合适的烧结温度、保温时间、烧结压力、升温速率、降温速率和金刚石重量占比参数范围。' },
+      { title: '计算石墨化边界温度', text: '当烧结压力为[填写]GPa时，根据T上限≈370P-530公式，计算石墨化边界温度，给出安全工艺窗口建议。' },
+      { title: '分析石墨化风险', text: '分析石墨化风险：当烧结温度为[填写]℃、压力为[填写]GPa时，是否在安全工艺窗口内？' },
+      { title: 'Si与C反应不充分问题', text: 'Si与C反应不充分时有哪些表现特征？如何通过调整工艺参数解决？' },
+    ],
+  },
+  {
+    id: 'thermal',
+    label: '热学性能分析',
+    items: [
+      { title: '影响热导率的关键因素', text: '请分析影响Diamond-SiC复合材料室温热导率的关键因素，重点说明界面热阻（TBR）的影响机制。' },
+      { title: '热膨胀系数匹配Si芯片', text: '目标热膨胀系数需与Si芯片匹配（2.5~4.5 ppm/K），请推荐满足此约束的材料配比和工艺参数。' },
+      { title: '优化热扩散系数', text: '如何通过调整金刚石重量占比（70~90wt%）来优化热扩散系数？' },
+    ],
+  },
+  {
+    id: 'microstructure',
+    label: '微观结构分析',
+    items: [
+      { title: '残留Si或石墨相分析', text: '理想物相比例应为"金刚石+SiC"，如果检测到残留Si或石墨相，分别说明原因和改进措施。' },
+      { title: '致密度判断与检测', text: '如何判断致密度是否满足高热导率要求？致密度与孔隙率的检测方法有哪些？' },
+    ],
+  },
+  {
+    id: 'pcd',
+    label: 'PCD性能检测',
+    items: [
+      { title: 'PCD气孔率验收标准', text: '请说明PCD材料气孔率验收标准：散热级<[填写]%，切削级<[填写]%，并解释检测方法。' },
+      { title: 'LFA法测定热导率', text: '如何用激光闪射法（LFA）测定PCD热导率？测量结果如何换算？' },
+    ],
+  },
+]
+
 function pickRandomSuggestions(list, count = 4) {
   const arr = [...list]
   for (let i = arr.length - 1; i > 0; i--) {
@@ -194,6 +233,10 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
   const [selectedCatId, setSelectedCatId] = useState(null)
   const [selectedDirs, setSelectedDirs] = useState([])
   const [showCatMenu, setShowCatMenu] = useState(false)
+
+  // 提示词模板
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [activeTplCat, setActiveTplCat] = useState(PROMPT_TEMPLATES[0].id)
 
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
@@ -357,6 +400,18 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
       // 失败时回滚
       setRatedMsgs(prev => { const n = { ...prev }; delete n[msgIdx]; return n })
     }
+  }
+
+  const fillTemplate = (text) => {
+    setInput(text)
+    setShowTemplates(false)
+    setTimeout(() => {
+      const el = textareaRef.current
+      if (!el) return
+      el.focus()
+      const idx = text.indexOf('[填写]')
+      if (idx !== -1) el.setSelectionRange(idx, idx + 4)
+    }, 50)
   }
 
   const catSummaryText = !selectedCatId
@@ -539,7 +594,56 @@ function ChatWindow({ sessionId, onModelChange, onMessageSent }) {
             </div>
           )}
         </div>
+
+        {/* 提示词模板触发按钮（靠右） */}
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <button
+            className={`tpl-toggle-btn ${showTemplates ? 'active' : ''}`}
+            onClick={() => setShowTemplates(v => !v)}
+            title="提示词模板"
+          >
+            <BookIcon size={13} />
+            <span>提示词模板</span>
+            <span style={{ fontSize: 10, opacity: 0.7 }}>{showTemplates ? '▴' : '▾'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* 提示词模板面板 */}
+      {showTemplates && (
+        <div className="tpl-panel">
+          {/* 分类 Tab */}
+          <div className="tpl-tabs">
+            {PROMPT_TEMPLATES.map(cat => (
+              <button
+                key={cat.id}
+                className={`tpl-tab ${activeTplCat === cat.id ? 'active' : ''}`}
+                onClick={() => setActiveTplCat(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 模板列表 */}
+          <div className="tpl-list">
+            {PROMPT_TEMPLATES.find(c => c.id === activeTplCat)?.items.map((tpl, i) => (
+              <button key={i} className="tpl-item" onClick={() => fillTemplate(tpl.text)}>
+                <span className="tpl-item-num">{i + 1}</span>
+                <div className="tpl-item-body">
+                  <div className="tpl-item-title">{tpl.title}</div>
+                  <div className="tpl-item-preview">{tpl.text}</div>
+                </div>
+                <span className="tpl-item-use">填入 →</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="tpl-hint">
+            点击模板自动填入输入框，<strong>[填写]</strong> 处会被选中，直接输入替换即可
+          </div>
+        </div>
+      )}
 
       {/* 输入区：已选类别/方向以小标签显示在输入框左上角，不单独占行 */}
       <div className="chat-input-area">
