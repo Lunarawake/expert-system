@@ -199,7 +199,7 @@ async def update_password(
 async def upload_document(
     file: UploadFile = File(...),
     kb_group: str = Form("general"),
-    _: dict = Depends(require_admin),
+    _: dict = Depends(get_current_user),
 ):
     filename = file.filename or "unknown"
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
@@ -236,7 +236,7 @@ async def list_documents(_: dict = Depends(get_current_user)):
 
 
 @app.delete("/documents/{doc_id}", summary="删除文档")
-async def remove_document(doc_id: str, _: dict = Depends(require_admin)):
+async def remove_document(doc_id: str, _: dict = Depends(get_current_user)):
     if not delete_document(doc_id):
         raise HTTPException(404, "文档不存在")
     return {"success": True, "message": "文档已删除"}

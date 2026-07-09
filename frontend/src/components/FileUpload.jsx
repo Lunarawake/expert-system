@@ -89,7 +89,7 @@ function FileUpload({ isAdmin = false }) {
   return (
     <div>
       <h2 className="section-title"><FileTextIcon size={20} /> 文档管理</h2>
-      <p className="section-subtitle">{isAdmin ? '上传 PDF 或 Word 文档，系统自动分块建立专家知识库' : '查看已入库的知识库文档'}</p>
+      <p className="section-subtitle">上传 PDF 或 Word 文档，系统自动分块建立专家知识库</p>
 
       {alert && (
         <div className={`alert alert-${alert.type === 'error' ? 'error' : 'success'}`}>
@@ -98,7 +98,7 @@ function FileUpload({ isAdmin = false }) {
         </div>
       )}
 
-      {isAdmin && (<>
+      <>
         {/* 专家库选择 */}
         <div className="kb-group-selector">
           <span className="kb-group-label">归属专家库</span>
@@ -137,7 +137,7 @@ function FileUpload({ isAdmin = false }) {
           <div className="upload-hint">支持 PDF、Word(.docx) 格式，单次上传一个文件</div>
           {uploading && <div className="progress-bar"><div className="progress-fill" /></div>}
         </div>
-      </>)}
+      </>
 
       {/* 文档列表标题 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -165,15 +165,13 @@ function FileUpload({ isAdmin = false }) {
                   </div>
                 </div>
               </div>
-              {isAdmin && (
-                <button
-                  className="btn btn-danger"
-                  style={{ fontSize: 13, padding: '6px 14px' }}
-                  onClick={() => handleDelete(doc.doc_id, doc.filename)}
-                >
-                  删除
-                </button>
-              )}
+              <button
+                className="btn btn-danger"
+                style={{ fontSize: 13, padding: '6px 14px' }}
+                onClick={() => handleDelete(doc.doc_id, doc.filename)}
+              >
+                删除
+              </button>
             </div>
           ))}
         </div>

@@ -113,8 +113,8 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
         </div>
       </div>
 
-      {/* 快速上传（仅管理员） */}
-      {isAdmin && <div style={{ padding: '12px 18px 4px' }}>
+      {/* 快速上传 */}
+      <div style={{ padding: '12px 18px 4px' }}>
         {uploadMsg && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 5,
@@ -143,7 +143,7 @@ function RightPanel({ currentSessionId, sessionVersion, onSessionSelect, onSessi
             <div className="panel-upload-hint">支持 PDF / Word 格式</div>
           </div>
         </div>
-      </div>}
+      </div>
 
       {/* 最近文档 */}
       {docs.length > 0 && (
