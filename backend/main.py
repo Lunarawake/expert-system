@@ -18,6 +18,7 @@ from chat import (
     clear_session,
     get_all_sessions,
     get_session,
+    session_belongs_to,
 )
 from stats import (
     record_query,
@@ -246,12 +247,15 @@ async def remove_document(doc_id: str, _: dict = Depends(require_admin)):
 @app.post("/chat", summary="问答（支持指定模型）")
 async def chat_endpoint(
     request: ChatRequest,
-    _: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
 ):
     if not request.message.strip():
         raise HTTPException(400, "消息不能为空")
     session_id = request.session_id or str(uuid.uuid4())
-    result = await do_chat(session_id, request.message, request.model_id, request.kb_group)
+    result = await do_chat(
+        session_id, request.message, request.model_id, request.kb_group,
+        current_user["username"],
+    )
     record_query(session_id, request.message, result.get("model_used"), request.kb_group)
     return {"success": True, "data": result}
 
@@ -264,21 +268,25 @@ async def clear_chat(session_id: str, _: dict = Depends(get_current_user)):
 
 # ==================== 会话历史 ====================
 
-@app.get("/sessions", summary="获取所有历史会话")
-async def list_sessions(_: dict = Depends(get_current_user)):
-    return {"success": True, "data": get_all_sessions()}
+@app.get("/sessions", summary="获取历史会话（管理员看全部，普通用户看自己的）")
+async def list_sessions(current_user: dict = Depends(get_current_user)):
+    username = None if current_user["role"] == "admin" else current_user["username"]
+    return {"success": True, "data": get_all_sessions(username)}
 
 
 @app.get("/sessions/{session_id}", summary="获取某个会话的完整对话历史")
-async def get_session_detail(session_id: str, _: dict = Depends(get_current_user)):
-    data = get_session(session_id)
+async def get_session_detail(session_id: str, current_user: dict = Depends(get_current_user)):
+    username = None if current_user["role"] == "admin" else current_user["username"]
+    data = get_session(session_id, username)
     if data is None:
         raise HTTPException(404, "会话不存在")
     return {"success": True, "data": data}
 
 
 @app.delete("/sessions/{session_id}", summary="删除会话")
-async def delete_session(session_id: str, _: dict = Depends(get_current_user)):
+async def delete_session(session_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin" and not session_belongs_to(session_id, current_user["username"]):
+        raise HTTPException(404, "会话不存在")
     clear_session(session_id)
     return {"success": True, "message": "会话已删除"}
 
@@ -293,16 +301,16 @@ def _mask_key(key: str) -> str:
     return "已设置"
 
 
-@app.get("/models", summary="获取模型列表")
-async def list_models(_: dict = Depends(require_admin)):
+@app.get("/models", summary="获取模型列表（全员可读，管理员可见详情）")
+async def list_models(current_user: dict = Depends(get_current_user)):
+    is_admin = current_user["role"] == "admin"
     result = [
         {
             "id": m.id,
             "name": m.name,
-            "api_key_masked": _mask_key(m.api_key),
-            "base_url": m.base_url,
-            "model_name": m.model_name,
             "is_default": m.is_default,
+            # 以下字段仅管理员可见
+            **({"api_key_masked": _mask_key(m.api_key), "base_url": m.base_url, "model_name": m.model_name} if is_admin else {}),
         }
         for m in cfg.get_all_models()
     ]

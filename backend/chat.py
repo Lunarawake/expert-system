@@ -58,7 +58,8 @@ def _prune():
 
 # ==================== 公开查询 API ====================
 
-def get_all_sessions() -> List[Dict]:
+def get_all_sessions(username: Optional[str] = None) -> List[Dict]:
+    """username=None 时返回所有（管理员用），否则只返回该用户的会话"""
     result = [
         {
             "session_id": sid,
@@ -68,20 +69,31 @@ def get_all_sessions() -> List[Dict]:
             "message_count": len(d.get("messages", [])),
         }
         for sid, d in sessions_data.items()
+        if username is None or d.get("username", "") == username
     ]
     result.sort(key=lambda x: x["updated_at"], reverse=True)
     return result
 
 
-def get_session(session_id: str) -> Optional[Dict]:
+def get_session(session_id: str, username: Optional[str] = None) -> Optional[Dict]:
+    """username=None 时跳过归属检查（管理员用）"""
     d = sessions_data.get(session_id)
     if not d:
+        return None
+    if username is not None and d.get("username", "") != username:
         return None
     return {
         "session_id": session_id,
         "title": d.get("title", "新对话"),
         "messages": d.get("messages", []),
     }
+
+
+def session_belongs_to(session_id: str, username: str) -> bool:
+    d = sessions_data.get(session_id)
+    if not d:
+        return False
+    return d.get("username", "") == username
 
 
 def get_session_history(session_id: str) -> List[Dict[str, str]]:
@@ -96,7 +108,7 @@ def clear_session(session_id: str):
 
 # ==================== 内部写入 ====================
 
-def _ensure(session_id: str, first_user_msg: str):
+def _ensure(session_id: str, first_user_msg: str, username: str = ""):
     if session_id not in sessions_data:
         now = _now_iso()
         sessions_data[session_id] = {
@@ -104,6 +116,7 @@ def _ensure(session_id: str, first_user_msg: str):
             "created_at": now,
             "updated_at": now,
             "messages": [],
+            "username": username,
         }
 
 
@@ -123,6 +136,7 @@ async def chat(
     user_message: str,
     model_id: Optional[str] = None,
     kb_group: Optional[str] = None,
+    username: str = "",
 ) -> Dict[str, Any]:
     # 1. 选定模型
     if model_id:
@@ -201,7 +215,7 @@ async def chat(
         system_prompt += f"\n\n以下是相关参考资料：\n\n{context}"
 
     # 4. 确保会话存在，获取历史
-    _ensure(session_id, user_message)
+    _ensure(session_id, user_message, username)
     history = get_session_history(session_id)
 
     # 5. 组装消息

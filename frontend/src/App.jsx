@@ -177,6 +177,10 @@ function App() {
   }, [user, activeNav])
 
   const handleLogin = (userData) => {
+    // 登录时重置 session，避免不同用户共用同一个 session_id
+    const newId = generateUUID()
+    localStorage.setItem('expert_session_id', newId)
+    setCurrentSessionId(newId)
     setUser(userData)
     setActiveNav('chat')
   }
