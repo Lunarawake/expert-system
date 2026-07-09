@@ -4,7 +4,7 @@ import { ChatIcon, FolderIcon, SlidersIcon, WorkflowIcon, ChartIcon, UsersIcon, 
 const ALL_NAV_ITEMS = [
   { id: 'chat',     label: '智能问答',   Icon: ChatIcon,     roles: ['admin', 'operator'] },
   { id: 'docs',     label: '文档管理',   Icon: FolderIcon,   roles: ['admin', 'operator'] },
-  { id: 'stats',    label: '使用统计',   Icon: ChartIcon,    roles: ['admin', 'operator'] },
+  { id: 'stats',    label: '使用统计',   Icon: ChartIcon,    roles: ['admin'] },
   { id: null, divider: true, roles: ['admin'] },
   { id: 'config',   label: '模型配置',   Icon: SlidersIcon,  roles: ['admin'] },
   { id: 'workflow', label: '工作流管理', Icon: WorkflowIcon, roles: ['admin'] },
