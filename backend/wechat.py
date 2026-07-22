@@ -63,9 +63,21 @@ def _get_access_token() -> Optional[str]:
 
 # ==================== 签名计算 ====================
 
-def _sha1(*args: str) -> str:
-    """计算企业微信签名：对所有参数排序后拼接做 SHA1"""
-    return hashlib.sha1("".join(sorted(args)).encode("utf-8")).hexdigest()
+def verify_signature(timestamp: str, nonce: str, encrypt: str, msg_signature: str) -> bool:
+    """
+    企业微信签名验证（官方算法，见 WXBizMsgCrypt.getSHA1）：
+    对 token、timestamp、nonce、echostr（或 Encrypt 密文）四个参数字符串
+    做字典序排序后直接拼接，再做 SHA1，与传入的 msg_signature 对比。
+
+    注意：企业微信始终工作在安全模式，回调时无论是否已在本文件中
+    配置 ENCODING_AES_KEY，微信服务器都会带上加密串并按四参数计算签名；
+    若签名计算时遗漏 echostr/Encrypt 这一参数（例如误用三参数模式），
+    将导致 expected 与 msg_signature 永远不一致。
+    """
+    expected = hashlib.sha1(
+        "".join(sorted([TOKEN, timestamp, nonce, encrypt])).encode("utf-8")
+    ).hexdigest()
+    return expected == msg_signature
 
 
 # ==================== AES 解密（安全模式） ====================
@@ -141,8 +153,8 @@ def _send_text(user_id: str, content: str):
 async def wechat_verify(request: Request):
     """
     企业微信在管理后台配置「接收消息服务器URL」时，会向该地址发 GET 请求来验证。
-    验证逻辑：对 [Token, timestamp, nonce] 排序拼接后 SHA1，与 msg_signature 对比。
-    安全模式下 echostr 是加密的，需先解密再返回；明文模式直接返回 echostr。
+    企业微信始终工作在安全模式：验证请求一定带着加密的 echostr，
+    签名固定用 [Token, timestamp, nonce, echostr] 四个参数排序拼接后 SHA1。
     """
     p = request.query_params
     msg_signature = p.get("msg_signature", "")
@@ -150,24 +162,19 @@ async def wechat_verify(request: Request):
     nonce = p.get("nonce", "")
     echostr = p.get("echostr", "")
 
-    if ENCODING_AES_KEY:
-        # 安全模式：签名包含加密的 echostr
-        expected = _sha1(TOKEN, timestamp, nonce, echostr)
-        if expected != msg_signature:
-            print(f"⚠️ 企业微信URL验证签名不匹配 expected={expected} got={msg_signature}")
-            return Response(content="签名验证失败", status_code=403)
-        # 解密 echostr 取出原始随机串返回
-        plain = _aes_decrypt(echostr)
-        if not plain:
-            return Response(content="解密失败", status_code=500)
-        return Response(content=plain, media_type="text/plain")
-    else:
-        # 明文模式（EncodingAESKey 未配置时的测试模式）
-        expected = _sha1(TOKEN, timestamp, nonce)
-        if expected != msg_signature:
-            print(f"⚠️ 企业微信URL验证签名不匹配 expected={expected} got={msg_signature}")
-            return Response(content="签名验证失败", status_code=403)
-        return Response(content=echostr, media_type="text/plain")
+    if not verify_signature(timestamp, nonce, echostr, msg_signature):
+        print(f"⚠️ 企业微信URL验证签名不匹配 got={msg_signature}")
+        return Response(content="签名验证失败", status_code=403)
+
+    if not ENCODING_AES_KEY:
+        print("⚠️ 签名验证通过，但 ENCODING_AES_KEY 未配置，无法解密 echostr")
+        return Response(content="未配置ENCODING_AES_KEY", status_code=500)
+
+    # 解密 echostr 取出原始随机串返回
+    plain = _aes_decrypt(echostr)
+    if not plain:
+        return Response(content="解密失败", status_code=500)
+    return Response(content=plain, media_type="text/plain")
 
 
 # ==================== 接口：接收消息并回复 ====================
@@ -176,7 +183,7 @@ async def wechat_verify(request: Request):
 async def wechat_message(request: Request):
     """
     企业微信将员工发送的消息推送到此接口（POST XML格式）。
-    安全模式下消息体被 AES 加密，需先解密；明文模式直接解析 XML。
+    消息体被 AES 加密（外层含 Encrypt 字段），需先验证签名再解密。
     处理流程：提取文本内容 → 调用AI问答 → 通过API发送回复 → 返回 "success"。
     必须返回字符串 "success"，否则企业微信会认为投递失败并重试。
     """
@@ -198,8 +205,9 @@ async def wechat_message(request: Request):
 
         # 验证消息签名
         p = request.query_params
-        expected = _sha1(TOKEN, p.get("timestamp", ""), p.get("nonce", ""), encrypt_node.text)
-        if expected != p.get("msg_signature", ""):
+        if not verify_signature(
+            p.get("timestamp", ""), p.get("nonce", ""), encrypt_node.text, p.get("msg_signature", "")
+        ):
             print("⚠️ 企业微信消息签名验证失败，忽略该消息")
             return Response(content="success", media_type="text/plain")
 
