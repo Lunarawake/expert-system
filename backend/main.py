@@ -40,6 +40,7 @@ from users import (
     get_user_by_id,
 )
 from auth import create_access_token, get_current_user, require_admin
+from wechat import router as wechat_router
 
 # ==================== 应用初始化 ====================
 
@@ -62,6 +63,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # 启动时建用户表并初始化默认管理员
 init_users_db()
+
+# 企业微信回调路由（GET验证 + POST接收消息）
+app.include_router(wechat_router, prefix="/wechat", tags=["企业微信"])
 
 
 # ==================== Pydantic 请求体 ====================
