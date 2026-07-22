@@ -77,6 +77,8 @@ def verify_signature(timestamp: str, nonce: str, encrypt: str, msg_signature: st
     expected = hashlib.sha1(
         "".join(sorted([TOKEN, timestamp, nonce, encrypt])).encode("utf-8")
     ).hexdigest()
+    if expected != msg_signature:
+        print(f"🔍 签名调试 TOKEN={TOKEN!r} timestamp={timestamp!r} nonce={nonce!r} encrypt={encrypt!r}")
     return expected == msg_signature
 
 
