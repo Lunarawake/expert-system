@@ -1,0 +1,14 @@
+[Unit]
+Description=数字专家系统后端
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/expert-system/backend
+ExecStart=/var/www/expert-system/backend/venv/bin/python3 main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

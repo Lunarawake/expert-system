@@ -152,3 +152,33 @@ A: 对话历史存储在内存中，重启后端后清空。session_id 存储在
 
 **Q: 如何对接微信？**  
 A: 后端已配置 CORS 允许所有来源，将后端部署到公网服务器后，微信小程序直接调用 `/chat` 接口即可。
+
+---
+
+## 生产部署：systemd 开机自启
+
+仓库自带 `backend/expert-system.service`，把它安装为系统服务后，服务器重启会自动拉起后端，进程崩溃也会自动重启。
+
+```bash
+# 1. 把服务文件复制到 systemd 目录
+cp /var/www/expert-system/backend/expert-system.service /etc/systemd/system/expert-system.service
+
+# 2. 重新加载 systemd 配置
+systemctl daemon-reload
+
+# 3. 设置开机自启
+systemctl enable expert-system
+
+# 4. 立即启动服务
+systemctl start expert-system
+```
+
+常用管理命令：
+
+```bash
+systemctl status expert-system   # 查看运行状态
+systemctl restart expert-system  # 重启服务
+journalctl -u expert-system -f   # 实时查看日志
+```
+
+> `expert-system.service` 里的 `ExecStart` 假设虚拟环境路径为 `backend/venv`；如果服务器上的虚拟环境目录名不同，需同步修改该文件里的路径后再执行上述步骤。
