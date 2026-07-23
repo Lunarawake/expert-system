@@ -10,6 +10,8 @@ from typing import List, Optional
 from pydantic import BaseModel as PydanticModel, ConfigDict
 from pydantic_settings import BaseSettings
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # ==================== 模型实体 ====================
 
@@ -31,7 +33,7 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL_NAME: str = "shibing624/text2vec-base-chinese"
 
     # ChromaDB 存储路径
-    CHROMA_DB_PATH: str = "./chroma_db"
+    CHROMA_DB_PATH: str = os.path.join(BASE_DIR, "chroma_db")
 
     # 文本分块
     CHUNK_SIZE: int = 500
@@ -44,7 +46,7 @@ class Settings(BaseSettings):
     MAX_HISTORY_TURNS: int = 10
 
     # 多模型配置持久化文件
-    MODELS_FILE: str = "./models.json"
+    MODELS_FILE: str = os.path.join(BASE_DIR, "models.json")
 
     model_config = ConfigDict(
         env_file=".env",

@@ -1,13 +1,15 @@
 """
 用户管理模块：SQLite users 表 + bcrypt 密码哈希
 """
+import os
 import sqlite3
 from datetime import datetime, timezone
 from typing import Optional, List, Dict
 
 from passlib.context import CryptContext
 
-DB_PATH = "./knowledge.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "knowledge.db")
 
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

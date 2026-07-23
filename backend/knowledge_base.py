@@ -3,6 +3,7 @@
 文档解析（PDF/Word）→ 文本分块 → SQLite 持久化
 搜索由 retriever.py 的 jieba 关键词匹配完成，无需向量模型
 """
+import os
 import uuid
 import sqlite3
 from typing import List, Dict, Any, Optional
@@ -15,7 +16,8 @@ from config import settings
 
 # ==================== SQLite 初始化 ====================
 
-DB_PATH = "./knowledge.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "knowledge.db")
 
 _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 _conn.execute("PRAGMA journal_mode=WAL")

@@ -2,11 +2,13 @@
 工作流管理模块
 三个预设工作流模板，状态持久化到 SQLite
 """
+import os
 import sqlite3
 from datetime import datetime, timezone
 from typing import List, Dict, Any
 
-DB_PATH = "./knowledge.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "knowledge.db")
 
 _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 _conn.execute("PRAGMA journal_mode=WAL")

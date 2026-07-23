@@ -12,7 +12,7 @@ import httpx
 from config import settings, get_model_by_id, get_default_model
 from retriever import retrieve, format_context, get_source_files
 
-SESSIONS_FILE = "./sessions.json"
+SESSIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions.json")
 MAX_SESSIONS = 50
 
 # { session_id: { title, created_at, updated_at, messages: [...] } }

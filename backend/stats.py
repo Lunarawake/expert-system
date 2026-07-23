@@ -2,11 +2,13 @@
 使用统计 + 问答反馈模块
 query_log / feedback_log 表存储在 knowledge.db
 """
+import os
 import sqlite3
 from datetime import datetime, timezone, date
 from typing import List, Dict, Any, Optional
 
-DB_PATH = "./knowledge.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "knowledge.db")
 
 _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 _conn.execute("PRAGMA journal_mode=WAL")
