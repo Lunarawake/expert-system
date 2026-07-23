@@ -1,6 +1,7 @@
 #!/bin/bash
 BACKUP_DIR="/var/www/expert-system/backups"
 mkdir -p "$BACKUP_DIR"
+sqlite3 /var/www/expert-system/backend/knowledge.db "PRAGMA wal_checkpoint(FULL);" 2>/dev/null || true
 cp /var/www/expert-system/backend/knowledge.db "$BACKUP_DIR/knowledge_$(date +%Y%m%d_%H%M%S).db"
 cp /var/www/expert-system/backend/models.json "$BACKUP_DIR/models_$(date +%Y%m%d_%H%M%S).json"
 # 只保留最近30个备份
