@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 
 import httpx
+import anthropic
 
 from config import settings, get_model_by_id, get_default_model
 from retriever import retrieve, format_context, get_source_files
@@ -218,31 +219,48 @@ async def chat(
     _ensure(session_id, user_message, username)
     history = get_session_history(session_id)
 
-    # 5. 组装消息
-    messages = [{"role": "system", "content": system_prompt}]
-    messages.extend(history)
-    messages.append({"role": "user", "content": user_message})
+    # 5. 组装消息（不含 system：Anthropic 原生接口的 system 是独立参数，不放进 messages）
+    conversation_messages = history + [{"role": "user", "content": user_message}]
 
     # 6. 检查 Key
     if not model.api_key:
         return {"answer": f"⚠️ 模型「{model.name}」未配置 API Key，请在模型配置页面填写后再使用。",
                 "sources": [], "session_id": session_id, "model_used": model.name}
 
+    is_anthropic = "anthropic.com" in (model.base_url or "")
+
     # 7. 调用 LLM
     try:
-        async with httpx.AsyncClient(timeout=90.0) as client:
-            resp = await client.post(
-                f"{model.base_url}/chat/completions",
-                headers={"Authorization": f"Bearer {model.api_key}",
-                         "Content-Type": "application/json"},
-                json={"model": model.model_name, "messages": messages,
-                      "temperature": 0.7, "max_tokens": 2000},
+        if is_anthropic:
+            # Anthropic SDK 自带同步/异步两种客户端，异步接口下必须用 AsyncAnthropic，
+            # 否则同步调用会阻塞事件循环，拖慢其他并发请求。
+            client = anthropic.AsyncAnthropic(api_key=model.api_key, timeout=90.0)
+            resp = await client.messages.create(
+                model=model.model_name,
+                max_tokens=2000,
+                system=system_prompt,
+                messages=conversation_messages,
             )
-            resp.raise_for_status()
-            answer = resp.json()["choices"][0]["message"]["content"]
+            answer = "".join(block.text for block in resp.content if block.type == "text")
+        else:
+            messages = [{"role": "system", "content": system_prompt}] + conversation_messages
+            async with httpx.AsyncClient(timeout=90.0) as client:
+                resp = await client.post(
+                    f"{model.base_url}/chat/completions",
+                    headers={"Authorization": f"Bearer {model.api_key}",
+                             "Content-Type": "application/json"},
+                    json={"model": model.model_name, "messages": messages,
+                          "temperature": 0.7, "max_tokens": 2000},
+                )
+                resp.raise_for_status()
+                answer = resp.json()["choices"][0]["message"]["content"]
     except httpx.HTTPStatusError as e:
         answer = f"❌ 调用「{model.name}」失败（{e.response.status_code}）：{e.response.text[:200]}"
     except httpx.TimeoutException:
+        answer = f"❌「{model.name}」请求超时，请稍后重试。"
+    except anthropic.APIStatusError as e:
+        answer = f"❌ 调用「{model.name}」失败（{e.status_code}）：{str(e.message)[:200]}"
+    except anthropic.APITimeoutError:
         answer = f"❌「{model.name}」请求超时，请稍后重试。"
     except Exception as e:
         answer = f"❌ 发生错误：{str(e)}"
